@@ -24,6 +24,7 @@ public abstract class AbstractRestServer extends AbstractServer {
             registerResources( config );
             JdkHttpServerFactory.createHttpServer( URI.create(serverURI.replace(IP.hostAddress(), INETADDR_ANY)), config);
             Log.info(String.format("Server ready @ %s\n",   serverURI));
+            Log.info(IP.hostAddress());
         }catch (Exception e) {
             Log.severe(e.getMessage());
         }

@@ -11,6 +11,41 @@
 	</properties>
 	<dependencies>
 		<dependency>
+			<groupId>com.sample</groupId>
+			<artifactId>sample</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/BenchmarkExecutor.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>1.10</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport</artifactId>
+			<version>4.0.5.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec</artifactId>
+			<version>4.1.12.Final</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>1.69</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.sample1</groupId>
+			<artifactId>sample1</artifactId>
+			<version>1.0</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/core-0.1.4.jar</systemPath>
+		</dependency>
+		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-jackson</artifactId>
 			<version>3.1.1</version>
@@ -83,22 +118,59 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.1.1</version>
-				<configuration>
-					<finalName>RestWalletServer</finalName>
-					<appendAssemblyId>true</appendAssemblyId>
-					<archive>
-						<manifest>
-							<mainClass>csd2324.trab1.server.rest.RestWalletServer</mainClass>
-						</manifest>
-					</archive>
-					<descriptorRefs>
-						<descriptorRef>jar-with-dependencies</descriptorRef>
-					</descriptorRefs>
-
-				</configuration>
 				<executions>
 					<execution>
-						<id>assemble-all</id>
+						<id>build-proxy</id>
+						<configuration>
+							<finalName>RestWalletServer</finalName>
+							<appendAssemblyId>true</appendAssemblyId>
+							<archive>
+								<manifest>
+									<mainClass>csd2324.trab1.server.rest.RestWalletServer</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>build-replica</id>
+						<configuration>
+							<finalName>ReplicaServer</finalName>
+							<appendAssemblyId>true</appendAssemblyId>
+							<archive>
+								<manifest>
+									<mainClass>csd2324.trab1.server.rest.ReplicaServer</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>build-client</id>
+						<configuration>
+							<finalName>Client</finalName>
+							<appendAssemblyId>true</appendAssemblyId>
+							<archive>
+								<manifest>
+									<mainClass>csd2324.trab1.clients.Client</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
 						<phase>package</phase>
 						<goals>
 							<goal>single</goal>
