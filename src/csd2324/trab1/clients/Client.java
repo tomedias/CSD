@@ -6,5 +6,7 @@ public class Client {
     public static void main(String[] args) {
         Wallet client = new RestWalletClient(args[0]);
         System.out.println(client.test().value());
+        System.out.println(client.ledger().value());
+        System.out.println(client.balance("oi").value());
     }
 }
