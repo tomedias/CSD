@@ -1,0 +1,58 @@
+version: '3'
+services:
+  replica0:
+    image: openjdk:22-jdk
+    ports:
+      - "11000:11000"
+    volumes:
+      - ./target:/app/target
+      - ./config:/config
+    command: java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar /app/target/ReplicaServer-jar-with-dependencies.jar 0
+  replica1:
+    image: openjdk:22-jdk
+    ports:
+      - "11010:11010"
+    depends_on:
+      - replica0
+    volumes:
+      - ./target:/app/target
+      - ./config:/config
+    command: java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar /app/target/ReplicaServer-jar-with-dependencies.jar 1
+  replica2:
+    image: openjdk:22-jdk
+    ports:
+      - "11020:11020"
+    depends_on:
+      - replica1
+    volumes:
+      - ./target:/app/target
+      - ./config:/config
+    command: java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar /app/target/ReplicaServer-jar-with-dependencies.jar 2
+  replica3:
+    image: openjdk:22-jdk
+    depends_on:
+      - replica2
+    ports:
+      - "11030:11030"
+    volumes:
+      - ./target:/app/target
+      - ./config:/config
+    command: java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar /app/target/ReplicaServer-jar-with-dependencies.jar 3
+  proxy:
+    image: openjdk:22-jdk
+    depends_on:
+      - replica3
+    ports:
+      - "3456:3456"
+    volumes:
+      - ./target:/app/target
+      - ./config:/config
+    command: java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar /app/target/RestWalletServer-jar-with-dependencies.jar
+  client:
+    depends_on:
+      - proxy
+    image: openjdk:22-jdk
+    volumes:
+      - ./target:/app/target
+    command: java -jar /app/target/Client-jar-with-dependencies.jar http://127.0.0.1:3456/rest
+

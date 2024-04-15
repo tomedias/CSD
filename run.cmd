@@ -1,0 +1,5 @@
+java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar .\target\ReplicaServer-jar-with-dependencies.jar 0
+java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar .\target\ReplicaServer-jar-with-dependencies.jar 1
+java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar .\target\ReplicaServer-jar-with-dependencies.jar 2
+java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar .\target\ReplicaServer-jar-with-dependencies.jar 3
+java -Djava.security.properties='./config/java.security' -Dlogback.configurationFile="./config/logback.xml" -jar .\target\Client-jar-with-dependencies.jar

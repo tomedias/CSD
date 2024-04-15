@@ -16,6 +16,7 @@ RestWalletServer extends AbstractRestServer{
 
     RestWalletServer(){
         super(Log, Wallet.SERVICE_NAME, PORT);
+        Log.info("Test com logger");
     }
 
     @Override
