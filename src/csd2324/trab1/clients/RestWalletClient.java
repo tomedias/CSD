@@ -27,8 +27,8 @@ public class RestWalletClient extends RestClient implements Wallet {
 
 
 	@Override
-	public Result<Boolean> transfer(String from, String to, double amount, Signature signature) {
-		return super.reTry(() -> clt_transfer(from, to, amount, signature));
+	public Result<Boolean> transfer(String  signature,Transaction transaction) {
+		return super.reTry(() -> clt_transfer(signature, transaction));
 	}
 
 	@Override
@@ -63,10 +63,10 @@ public class RestWalletClient extends RestClient implements Wallet {
 		return super.toJavaResult(r, String.class);
 	}
 
-	private Result<Boolean> clt_transfer(String from, String to, double amount, Signature signature){
-		Response r = target.path("transfer").path(from).path(to).path(String.valueOf(amount))
+	private Result<Boolean> clt_transfer(String signature, Transaction transaction){
+		Response r = target.path("transfer").queryParam(WalletService.SIGNATURE,signature)
 				.request().accept(MediaType.APPLICATION_JSON)
-				.post(Entity.entity(signature, MediaType.APPLICATION_JSON));
+				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, Boolean.class);
 	}
 

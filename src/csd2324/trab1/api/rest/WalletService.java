@@ -20,18 +20,19 @@ public interface WalletService {
     String ACCOUNT = "account";
     String COMMAND = "command";
     String SECRET = "secret";
-
-    @POST
-    @Path("/transfer/{" + FROM + "}/{" + TO + "}/{"  + AMOUNT + "}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    boolean transfer(@PathParam(FROM) String from, @PathParam(TO) String to, @PathParam(AMOUNT) double amount,Signature signature);
+    String SIGNATURE = "signature";
 
     @POST
     @Path("/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    boolean atomicTransfer(List<Transaction> transactions);
+    boolean transfer(@QueryParam(SIGNATURE)  String  signature,Transaction transaction);
+
+    @POST
+    @Path("/transfer")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    boolean atomicTransfer(List<Transaction> transactions,List<String> signatures);
 
     @GET
     @Path("/balance/{" + ACCOUNT + "}")

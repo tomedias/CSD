@@ -22,7 +22,7 @@ public class Account{
         return id;
     }
 
-    public void setId(String id) {
+    protected void setId(String id) {
         this.id = id;
     }
 
@@ -30,17 +30,17 @@ public class Account{
         return balance;
     }
 
-    public void setBalance(double balance) {
+    protected void setBalance(double balance) {
         this.balance = balance;
     }
 
 
-    public void removeBalance(double balance) {
+    protected void removeBalance(double balance) {
         this.balance-=balance;
     }
 
 
-    public void addBalance(double balance) {
+    protected void addBalance(double balance) {
         this.balance+=balance;
     }
 
