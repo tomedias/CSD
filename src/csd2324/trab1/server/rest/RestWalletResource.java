@@ -2,11 +2,11 @@ package csd2324.trab1.server.rest;
 
 import bftsmart.tom.ServiceProxy;
 import com.google.gson.reflect.TypeToken;
-import csd2324.trab1.api.Signature;
 import csd2324.trab1.api.java.Wallet;
 import csd2324.trab1.api.rest.WalletService;
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.JavaWallet;
+import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 import jakarta.inject.Singleton;
@@ -30,17 +30,14 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public boolean transfer(String from, String to, double amount, Signature signature) {
+    public boolean transfer(SignedTransaction transaction) {
         process++;
         ServiceProxy counterProxy = new ServiceProxy(process);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
             try {
                 new DataOutputStream(out).writeUTF("transfer");
-                new DataOutputStream(out).writeUTF(from);
-                new DataOutputStream(out).writeUTF(to);
-                new DataOutputStream(out).writeDouble(amount);
-                new DataOutputStream(out).writeUTF(signature.toString());
+                new DataOutputStream(out).writeUTF(JSON.encode(transaction));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -58,10 +55,8 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public boolean atomicTransfer(List<Transaction> transactions) {
-        for(Transaction transaction : transactions){
-            transfer(transaction.getFrom(), transaction.getTo(), transaction.getAmount(), transaction.getSignature());
-        }
+    public boolean atomicTransfer(List<SignedTransaction> signed_transactions) {
+        //TODO
         return true;
     }
 
@@ -136,22 +131,17 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public boolean admin(String command, List<String> args,String secret) {
+    public boolean admin(Transaction transaction) {
         process++;
         ServiceProxy counterProxy = new ServiceProxy(process);
         ByteArrayOutputStream out = new ByteArrayOutputStream(100);
-        System.out.println("Admin command: " + command);
-        System.out.println("Secret: " + secret);
-        System.out.println("Args: " + args);
         try {
-            new DataOutputStream(out).writeUTF("admin");
-            new DataOutputStream(out).writeUTF(command);
-            new DataOutputStream(out).writeUTF(JSON.encode(args));
-            new DataOutputStream(out).writeUTF(secret);
+            new DataOutputStream(out).writeUTF("giveme");
+            new DataOutputStream(out).writeUTF(JSON.encode(transaction));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        byte[] reply = counterProxy.invokeUnordered(out.toByteArray()); //magic happens here
+        byte[] reply = counterProxy.invokeOrdered(out.toByteArray());
         if(reply != null) {
             try {
                 return new DataInputStream(new ByteArrayInputStream(reply)).readBoolean();

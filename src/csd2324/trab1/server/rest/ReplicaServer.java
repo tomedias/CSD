@@ -9,14 +9,14 @@ import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
 
 import csd2324.trab1.server.java.JavaWallet;
+import csd2324.trab1.server.java.SignedTransaction;
+import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 import jakarta.ws.rs.WebApplicationException;
 
 import jakarta.ws.rs.core.Response;
 
 import java.io.*;
-import java.util.List;
-import java.util.logging.Logger;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
 
@@ -36,12 +36,9 @@ public class ReplicaServer extends DefaultSingleRecoverable {
             String commandString = in.readUTF();
             switch(commandString){
                 case "transfer":
-                    String from = in.readUTF();
-                    String to = in.readUTF();
-                    double amount = in.readDouble();
-                    String signature = in.readUTF();
-                    System.out.println("Transfering " + amount + " from " + from + " to " + to + " with signature " + signature);
-                    boolean value = fromJavaResult(wallet.transfer(from, to, amount, null));
+                    String signedTransaction = in.readUTF();
+                    SignedTransaction transaction = JSON.decode(signedTransaction, SignedTransaction.class);
+                    boolean value = fromJavaResult(wallet.transfer(transaction));
                     out = new ByteArrayOutputStream(10000);
                     new DataOutputStream(out).writeBoolean(value);
                     return out.toByteArray();
@@ -64,6 +61,12 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                     String list = JSON.encode(fromJavaResult(wallet.ledger()));
                     out = new ByteArrayOutputStream(10000);
                     new DataOutputStream(out).writeUTF(list);
+                    return out.toByteArray();
+                case "giveme":
+                    Transaction admin_transaction = JSON.decode(in.readUTF(),Transaction.class)  ;
+                    boolean return_value = fromJavaResult(wallet.admin(admin_transaction));
+                    out = new ByteArrayOutputStream(1);
+                    new DataOutputStream(out).writeBoolean(return_value);
                     return out.toByteArray();
                 default:
                     System.out.println("Unknown command: " + commandString);
@@ -89,19 +92,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                     out = new ByteArrayOutputStream(10000);
                     new DataOutputStream(out).writeDouble(balance);
                     return out.toByteArray();
-                case "admin":
-                    String command_admin = in.readUTF();
-                    System.out.println("Admin command: " + command_admin);
-                    List<String> args = JSON.decode(in.readUTF(), List.class);
-                    String secret = in.readUTF();
 
-                    System.out.println("Secret: " + secret);
-                    System.out.println("Args: " + args);
-
-                    boolean value = fromJavaResult(wallet.admin(command_admin, args, secret));
-                    out = new ByteArrayOutputStream(1);
-                    new DataOutputStream(out).writeBoolean(value);
-                    return out.toByteArray();
 
                 default:
                     System.out.println("Unknown command: " + commandString);

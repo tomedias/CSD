@@ -1,43 +1,39 @@
 package csd2324.trab1.api.rest;
 
-import csd2324.trab1.api.Signature;
+
 import csd2324.trab1.server.java.Account;
+import csd2324.trab1.server.java.SignedTransaction;
+
 import csd2324.trab1.server.java.Transaction;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-
-import java.net.UnknownHostException;
 import java.util.List;
 
 @Path(WalletService.Path)
-public interface WalletService {
+public interface WalletService{
 
 
     String Path = "/wallet";
-    String FROM = "from";
-    String TO = "to";
-    String AMOUNT = "amount";
     String ACCOUNT = "account";
-    String COMMAND = "command";
-    String SECRET = "secret";
-    String SIGNATURE = "signature";
+    String QUANTITY = "quantity";
+    String ADMIN = "admin";
 
     @POST
     @Path("/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    boolean transfer(@QueryParam(SIGNATURE)  String  signature,Transaction transaction);
+    boolean transfer(SignedTransaction signedTransaction);
 
     @POST
-    @Path("/transfer")
+    @Path("/transfer/atomic")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    boolean atomicTransfer(List<Transaction> transactions,List<String> signatures);
+    boolean atomicTransfer(List<SignedTransaction> transactions);
 
     @GET
-    @Path("/balance/{" + ACCOUNT + "}")
+    @Path("/balance")
     @Produces(MediaType.APPLICATION_JSON)
-    double balance(@PathParam(ACCOUNT) String account);
+    double balance(@QueryParam(ACCOUNT) String account);
 
     @GET
     @Path("/ledger")
@@ -49,9 +45,8 @@ public interface WalletService {
     String test();
 
     @POST
-    @Path("/admin/{" + COMMAND + "}")
+    @Path("/admin")
     @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    boolean admin(@PathParam(COMMAND) String command, List<String> args,@QueryParam(SECRET) String secret);
+    boolean admin(Transaction transaction);
 
 }

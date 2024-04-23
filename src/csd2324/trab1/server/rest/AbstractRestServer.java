@@ -5,9 +5,6 @@ import csd2324.trab1.utils.IP;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
 import java.util.logging.Logger;
-
-
-import javax.net.ssl.SSLContext;
 import java.net.URI;
 
 public abstract class AbstractRestServer extends AbstractServer {

@@ -1,31 +1,15 @@
-package csd2324.trab1.api;
+package csd2324.trab1.utils;
 
-import csd2324.trab1.server.java.Transaction;
-import csd2324.trab1.utils.JSON;
-
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Security;
-import java.security.Signature;
+import java.security.*;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class Secure {
 
-    public static String signTransaciton(Transaction transaction, KeyPair keypair){//Secure clas
-        try{
-            byte[] stringTransaction =  JSON.encode(transaction).getBytes();
-            String signature = signData(stringTransaction,keypair.getPrivate());
-            return signature;   
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        return null;
-        
+    static {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
     public static KeyPair generateKeyPair() {//TODO create a security class
         try {
@@ -48,6 +32,27 @@ public class Secure {
     
     public static String privateKeyToString(KeyPair keyPair) {//TODO create a security class
         return Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
+    }
+
+    public static PublicKey stringToPublicKey(String key) {//TODO create a security class
+        try {
+
+            byte[] byteKey = Base64.getDecoder().decode(key);
+            return KeyFactory.getInstance("ECDSA").generatePublic(new X509EncodedKeySpec(byteKey));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static PrivateKey stringToPrivateKey(String key) {//TODO create a security class
+        try {
+            byte[] byteKey = Base64.getDecoder().decode(key);
+            return KeyFactory.getInstance("ECDSA").generatePrivate(new PKCS8EncodedKeySpec(byteKey));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public static String signData(byte[] data, PrivateKey privateKey) throws Exception {

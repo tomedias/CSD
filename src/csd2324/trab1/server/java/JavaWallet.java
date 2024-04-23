@@ -1,14 +1,13 @@
 package csd2324.trab1.server.java;
 
-import csd2324.trab1.api.Signature;
+
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
 
-
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import static csd2324.trab1.api.java.Result.ok;
 import static csd2324.trab1.api.java.Result.error;
 import static csd2324.trab1.api.java.Result.ErrorCode.FORBIDDEN;
@@ -18,39 +17,42 @@ import static csd2324.trab1.api.java.Result.ErrorCode.NOT_FOUND;
 public class JavaWallet implements Wallet {
 
     final protected Map<String,Account> accountMap = new HashMap<>();
-    private final String secret = "secret";
+    List<String> adminAccounts = List.of("MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==");
 
-    private Result<Boolean> checkTransfer(String from, String to, double amount, Signature signature){
-        Account fromAccount = accountMap.get(from);
+    private Result<Boolean> checkTransfer(SignedTransaction signed_transaction){
+        if(signed_transaction==null) return error(FORBIDDEN);
+        if(!signed_transaction.checkSignature()) return error(FORBIDDEN);
+        Transaction transaction = signed_transaction.getTransaction();
+        Account fromAccount = accountMap.get(transaction.getFrom());
         if(fromAccount==null) return error(NOT_FOUND);
-        Account toAccount = accountMap.get(to);
-        if(toAccount==null) return error(NOT_FOUND);
-        if(fromAccount.getBalance() < amount) return error(FORBIDDEN);
-        if(!checkSignature(fromAccount,signature)) return error(FORBIDDEN);
+        accountMap.computeIfAbsent(transaction.getTo(),new_account -> new Account(transaction.getTo()));
+        if(fromAccount.getBalance() < transaction.getAmount()) return error(FORBIDDEN);
         return ok(true);
     }
-    private void transferWithoutChecking(String from, String to, double amount, Signature signature){
+    private void transferWithoutChecking(String from, String to, double amount){
         Account fromAccount = accountMap.get(from);
         Account toAccount = accountMap.get(to);
         fromAccount.removeBalance(amount);
         toAccount.addBalance(amount);
     }
     @Override
-    public Result<Boolean> transfer(String from, String to, double amount, Signature signature) {
-        Result<Boolean> code = checkTransfer(from,to,amount,signature);
+    public Result<Boolean> transfer(SignedTransaction signed_transaction) {
+        Result<Boolean> code = checkTransfer(signed_transaction);
+        Transaction transaction = signed_transaction.getTransaction();
         if(!code.isOK()) return code;
-        transferWithoutChecking(from,to,amount,signature);
+        transferWithoutChecking(transaction.getFrom(),transaction.getTo(),transaction.getAmount());
         return ok(true);
     }
 
     @Override
-    public Result<Boolean> atomicTransfer(List<Transaction> transactions) {
-        for(Transaction transaction : transactions){
-            Result<Boolean> code = checkTransfer(transaction.getFrom(),transaction.getFrom(),transaction.getAmount(), transaction.getSignature());
+    public Result<Boolean> atomicTransfer(List<SignedTransaction> signed_transactions) {
+        for(SignedTransaction transaction : signed_transactions){
+            Result<Boolean> code = checkTransfer(transaction);
             if(!code.isOK()) return code;
         }
-        for(Transaction transaction : transactions){
-            transferWithoutChecking(transaction.getFrom(),transaction.getFrom(),transaction.getAmount(), transaction.getSignature());
+        for(SignedTransaction signed_transaction : signed_transactions){
+            Transaction transaction = signed_transaction.getTransaction();
+            transferWithoutChecking(transaction.getFrom(),transaction.getFrom(),transaction.getAmount());
         }
         return ok(true);
     }
@@ -73,31 +75,19 @@ public class JavaWallet implements Wallet {
     }
 
     @Override
-    public Result<Boolean> admin(String command, List<String> args, String secret) {
-        if(!secret.equals(this.secret)) return error(FORBIDDEN);
-
-        switch (command){
-            case "create_account":
-                if(args.isEmpty()) return error(FORBIDDEN);
-                if(args.size()==1) accountMap.put(args.get(0),new Account(args.get(0)));
-                else if(args.size()==2) accountMap.put(args.get(0),new Account(args.get(0),Double.parseDouble(args.get(1))));
-                return ok(true);
-            case "delete_account":
-                if(args.isEmpty()) return error(FORBIDDEN);
-                accountMap.remove(args.getFirst());
-                return ok(true);
-            case "wire":
-                if(args.size()!=2) return error(FORBIDDEN);
-                Account account = accountMap.get(args.get(0));
-                if(account==null) return error(NOT_FOUND);
-                account.addBalance(Double.parseDouble(args.get(1)));
-                return ok(true);
-            default:
-                return error(FORBIDDEN);
+    public Result<Boolean> admin(Transaction transaction) {
+        String admin = transaction.getFrom();
+        String accountID = transaction.getTo();
+        double quantity = transaction.getAmount();
+        if(!adminAccounts.contains(admin)){
+            return error(FORBIDDEN);
         }
-    }
+        Account account = accountMap.computeIfAbsent(accountID,new_account -> new Account(accountID));
+        account.addBalance(quantity);
+        return ok(true);
 
-    private boolean checkSignature(Account from, Signature sig){
-        return true;
     }
 }
+
+
+

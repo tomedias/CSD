@@ -1,22 +1,14 @@
 package csd2324.trab1.clients;
 
 import csd2324.trab1.api.java.Result;
-import csd2324.trab1.api.java.Wallet;
 import csd2324.trab1.server.java.Account;
+import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import org.checkerframework.checker.units.qual.A;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.Security;
-import java.security.spec.ECGenParameterSpec;
-import java.util.Base64;
-import csd2324.trab1.api.Secure;
+import java.security.*;
+import java.util.*;
+import csd2324.trab1.utils.Secure;
+
 
 
 public class Client{
@@ -32,14 +24,21 @@ public class Client{
 
     
     public Result<Boolean> transfer(Transaction transaction) {
-        String signature = Secure.signTransaciton(transaction, accountsMap.get(transaction.getFrom()));
-        return restClient.transfer(signature, transaction);
+        KeyPair keyPair = accountsMap.get(transaction.getFrom());
+        PrivateKey privateKey = keyPair.getPrivate();
+        return restClient.transfer(new SignedTransaction(privateKey,transaction));
     }
 
 
     
-    public Result<Boolean> atomicTransfer(List<Transaction> transactions,z) {
-       return restClient.atomicTransfer(transactions);
+    public Result<Boolean> atomicTransfer(List<Transaction> transactions) {
+        List<SignedTransaction> list_signed = new ArrayList<>();
+        for(Transaction transaction : transactions){
+            KeyPair keyPair = accountsMap.get(transaction.getFrom());
+            PrivateKey privateKey = keyPair.getPrivate();
+            list_signed.add(new SignedTransaction(privateKey,transaction));
+        }
+       return restClient.atomicTransfer(list_signed);
     }
 
     
@@ -59,9 +58,9 @@ public class Client{
 
 
     
-    public Result<Boolean> admin(String command, List<String> args, String secret) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
+    public Result<Boolean> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
 
-        return restClient.admin(command, args, secret);
+        return restClient.admin(transaction);
     }
 
     public Account createAccount(){
@@ -72,7 +71,10 @@ public class Client{
         Account account = new Account(Secure.publicKeyToString(keyPair));
         accountsMap.put(Secure.publicKeyToString(keyPair), keyPair);
         return account;
+    }
 
+    public KeyPair getKeyPair(String account){
+        return accountsMap.get(account);
     }
 
     

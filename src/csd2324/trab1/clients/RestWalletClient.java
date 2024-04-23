@@ -1,10 +1,11 @@
 package csd2324.trab1.clients;
 
-import csd2324.trab1.api.Signature;
+
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
 import csd2324.trab1.api.rest.WalletService;
 import csd2324.trab1.server.java.Account;
+import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
@@ -27,12 +28,12 @@ public class RestWalletClient extends RestClient implements Wallet {
 
 
 	@Override
-	public Result<Boolean> transfer(String  signature,Transaction transaction) {
-		return super.reTry(() -> clt_transfer(signature, transaction));
+	public Result<Boolean> transfer(SignedTransaction signedTransaction) {
+		return super.reTry(() -> clt_transfer(signedTransaction));
 	}
 
 	@Override
-	public Result<Boolean> atomicTransfer(List<Transaction> transactions) {
+	public Result<Boolean> atomicTransfer(List<SignedTransaction> transactions) {
 		return super.reTry(() -> clt_atomicTransfer(transactions));
 	}
 
@@ -52,8 +53,8 @@ public class RestWalletClient extends RestClient implements Wallet {
 	}
 
 	@Override
-	public Result<Boolean> admin(String command, List<String> args,String secret) {
-		return super.reTry(() -> clt_admin(command, args,secret));
+	public Result<Boolean> admin(Transaction transaction) {
+		return super.reTry(() -> clt_admin(transaction));
 	}
 
 	private Result<String> clt_test(){
@@ -63,22 +64,22 @@ public class RestWalletClient extends RestClient implements Wallet {
 		return super.toJavaResult(r, String.class);
 	}
 
-	private Result<Boolean> clt_transfer(String signature, Transaction transaction){
-		Response r = target.path("transfer").queryParam(WalletService.SIGNATURE,signature)
+	private Result<Boolean> clt_transfer(SignedTransaction signedTransaction){
+		Response r = target.path("transfer")
 				.request().accept(MediaType.APPLICATION_JSON)
-				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
+				.post(Entity.entity(signedTransaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, Boolean.class);
 	}
 
-	private Result<Boolean> clt_atomicTransfer(List<Transaction> transactions){
-		Response r = target.path("transfer")
+	private Result<Boolean> clt_atomicTransfer(List<SignedTransaction> transactions){
+		Response r = target.path("transfer").path("atomic")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(transactions, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, Boolean.class);
 	}
 
 	private Result<Double> clt_balance(String account){
-		Response r = target.path("balance").path(account)
+		Response r = target.path("balance").queryParam(WalletService.ACCOUNT,account)
 				.request().accept(MediaType.APPLICATION_JSON)
 				.get();
 		return super.toJavaResult(r, Double.class);
@@ -91,10 +92,10 @@ public class RestWalletClient extends RestClient implements Wallet {
 		return super.toJavaResult(r, new GenericType<List<Account>>() {});
 	}
 
-	private Result<Boolean> clt_admin(String command, List<String> args,String secret){
-		Response r = target.path("admin").path(command).queryParam(WalletService.SECRET,secret)
+	private Result<Boolean> clt_admin(Transaction transaction){
+		Response r = target.path("admin")
 				.request().accept(MediaType.APPLICATION_JSON)
-				.post(Entity.entity(args, MediaType.APPLICATION_JSON));
+				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, Boolean.class);
 	}
 }
