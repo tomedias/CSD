@@ -15,13 +15,14 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
 import java.io.*;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
 
     private Wallet wallet;
-    public ReplicaServer(int id) {
 
+    public ReplicaServer(int id) {
         new ServiceReplica(id, this, this);
         wallet = new JavaWallet();
     }
@@ -73,6 +74,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         return new byte[0];
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
         try {
@@ -87,6 +89,20 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                     out = new ByteArrayOutputStream(10000);
                     new DataOutputStream(out).writeDouble(balance);
                     return out.toByteArray();
+                case "admin":
+                    String command_admin = in.readUTF();
+                    System.out.println("Admin command: " + command_admin);
+                    List<String> args = JSON.decode(in.readUTF(), List.class);
+                    String secret = in.readUTF();
+
+                    System.out.println("Secret: " + secret);
+                    System.out.println("Args: " + args);
+
+                    boolean value = fromJavaResult(wallet.admin(command_admin, args, secret));
+                    out = new ByteArrayOutputStream(1);
+                    new DataOutputStream(out).writeBoolean(value);
+                    return out.toByteArray();
+
                 default:
                     System.out.println("Unknown command: " + commandString);
             }
@@ -103,6 +119,8 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         }
         new ReplicaServer(Integer.parseInt(args[0]));
     }
+
+
 
     @SuppressWarnings("unchecked")
     @Override

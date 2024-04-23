@@ -18,4 +18,6 @@ public interface Wallet {
     Result<List<Account>> ledger();
 
     Result<String> test();
+
+    Result<Boolean> admin(String command, List<String> args, String secret);
 }

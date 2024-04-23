@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+
+
 @Singleton
 public class RestWalletResource implements WalletService {
     private static Logger Log = Logger.getLogger(RestWalletResource.class.getName());
@@ -24,9 +26,7 @@ public class RestWalletResource implements WalletService {
     int process = 0;
 
     public RestWalletResource() {
-        Log.info("Test com logger");
         this.impl = new JavaWallet();
-        System.out.println("Com sout\n");
     }
 
     @Override
@@ -113,7 +113,7 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public String test() {
+    public String test(){
         process++;
         ServiceProxy counterProxy = new ServiceProxy(process);
             ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
@@ -133,5 +133,34 @@ public class RestWalletResource implements WalletService {
                 System.out.println(", ERROR! Exiting.");
                 return "ERROR! Exiting.";
             }
+    }
+
+    @Override
+    public boolean admin(String command, List<String> args,String secret) {
+        process++;
+        ServiceProxy counterProxy = new ServiceProxy(process);
+        ByteArrayOutputStream out = new ByteArrayOutputStream(100);
+        System.out.println("Admin command: " + command);
+        System.out.println("Secret: " + secret);
+        System.out.println("Args: " + args);
+        try {
+            new DataOutputStream(out).writeUTF("admin");
+            new DataOutputStream(out).writeUTF(command);
+            new DataOutputStream(out).writeUTF(JSON.encode(args));
+            new DataOutputStream(out).writeUTF(secret);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        byte[] reply = counterProxy.invokeUnordered(out.toByteArray()); //magic happens here
+        if(reply != null) {
+            try {
+                return new DataInputStream(new ByteArrayInputStream(reply)).readBoolean();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            System.out.println(", ERROR! Exiting.");
+            return false;
+        }
     }
 }

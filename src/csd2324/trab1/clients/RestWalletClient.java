@@ -43,12 +43,17 @@ public class RestWalletClient extends RestClient implements Wallet {
 
 	@Override
 	public Result<List<Account>> ledger() {
-		return super.reTry(() -> clt_ledger());
+		return super.reTry(this::clt_ledger);
 	}
 
 	@Override
 	public Result<String> test() {
-		return super.reTry(() -> clt_test());
+		return super.reTry(this::clt_test);
+	}
+
+	@Override
+	public Result<Boolean> admin(String command, List<String> args,String secret) {
+		return super.reTry(() -> clt_admin(command, args,secret));
 	}
 
 	private Result<String> clt_test(){
@@ -84,5 +89,12 @@ public class RestWalletClient extends RestClient implements Wallet {
 				.request().accept(MediaType.APPLICATION_JSON)
 				.get();
 		return super.toJavaResult(r, new GenericType<List<Account>>() {});
+	}
+
+	private Result<Boolean> clt_admin(String command, List<String> args,String secret){
+		Response r = target.path("admin").path(command).queryParam(WalletService.SECRET,secret)
+				.request().accept(MediaType.APPLICATION_JSON)
+				.post(Entity.entity(args, MediaType.APPLICATION_JSON));
+		return super.toJavaResult(r, Boolean.class);
 	}
 }

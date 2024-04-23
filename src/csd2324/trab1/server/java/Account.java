@@ -9,6 +9,10 @@ public class Account{
         id=null;
         balance=0;
     }
+    public Account(String id) {
+        this.id = id;
+        balance=0;
+    }
     public Account(String id, double balance) {
         this.id = id;
         this.balance = balance;

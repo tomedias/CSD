@@ -5,6 +5,8 @@ import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.Transaction;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
+
+import java.net.UnknownHostException;
 import java.util.List;
 
 @Path(WalletService.Path)
@@ -16,6 +18,8 @@ public interface WalletService {
     String TO = "to";
     String AMOUNT = "amount";
     String ACCOUNT = "account";
+    String COMMAND = "command";
+    String SECRET = "secret";
 
     @POST
     @Path("/transfer/{" + FROM + "}/{" + TO + "}/{"  + AMOUNT + "}")
@@ -42,4 +46,11 @@ public interface WalletService {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     String test();
+
+    @POST
+    @Path("/admin/{" + COMMAND + "}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    boolean admin(@PathParam(COMMAND) String command, List<String> args,@QueryParam(SECRET) String secret);
+
 }

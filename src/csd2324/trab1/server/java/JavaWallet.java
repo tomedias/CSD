@@ -18,7 +18,7 @@ import static csd2324.trab1.api.java.Result.ErrorCode.NOT_FOUND;
 public class JavaWallet implements Wallet {
 
     final protected Map<String,Account> accountMap = new HashMap<>();
-
+    private final String secret = "secret";
 
     private Result<Boolean> checkTransfer(String from, String to, double amount, Signature signature){
         Account fromAccount = accountMap.get(from);
@@ -69,8 +69,32 @@ public class JavaWallet implements Wallet {
 
     @Override
     public Result<String> test() {
-        accountMap.put("oi",new Account("Oi",192.23));
         return ok("test");
+    }
+
+    @Override
+    public Result<Boolean> admin(String command, List<String> args, String secret) {
+        if(!secret.equals(this.secret)) return error(FORBIDDEN);
+
+        switch (command){
+            case "create_account":
+                if(args.isEmpty()) return error(FORBIDDEN);
+                if(args.size()==1) accountMap.put(args.get(0),new Account(args.get(0)));
+                else if(args.size()==2) accountMap.put(args.get(0),new Account(args.get(0),Double.parseDouble(args.get(1))));
+                return ok(true);
+            case "delete_account":
+                if(args.isEmpty()) return error(FORBIDDEN);
+                accountMap.remove(args.getFirst());
+                return ok(true);
+            case "wire":
+                if(args.size()!=2) return error(FORBIDDEN);
+                Account account = accountMap.get(args.get(0));
+                if(account==null) return error(NOT_FOUND);
+                account.addBalance(Double.parseDouble(args.get(1)));
+                return ok(true);
+            default:
+                return error(FORBIDDEN);
+        }
     }
 
     private boolean checkSignature(Account from, Signature sig){
