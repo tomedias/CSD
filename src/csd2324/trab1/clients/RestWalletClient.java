@@ -28,12 +28,12 @@ public class RestWalletClient extends RestClient implements Wallet {
 
 
 	@Override
-	public Result<Boolean> transfer(SignedTransaction signedTransaction) {
+	public Result<Void> transfer(SignedTransaction signedTransaction) {
 		return super.reTry(() -> clt_transfer(signedTransaction));
 	}
 
 	@Override
-	public Result<Boolean> atomicTransfer(List<SignedTransaction> transactions) {
+	public Result<Void> atomicTransfer(List<SignedTransaction> transactions) {
 		return super.reTry(() -> clt_atomicTransfer(transactions));
 	}
 
@@ -53,7 +53,7 @@ public class RestWalletClient extends RestClient implements Wallet {
 	}
 
 	@Override
-	public Result<Boolean> admin(Transaction transaction) {
+	public Result<Void> admin(Transaction transaction) {
 		return super.reTry(() -> clt_admin(transaction));
 	}
 
@@ -64,18 +64,18 @@ public class RestWalletClient extends RestClient implements Wallet {
 		return super.toJavaResult(r, String.class);
 	}
 
-	private Result<Boolean> clt_transfer(SignedTransaction signedTransaction){
+	private Result<Void> clt_transfer(SignedTransaction signedTransaction){
 		Response r = target.path("transfer")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(signedTransaction, MediaType.APPLICATION_JSON));
-		return super.toJavaResult(r, Boolean.class);
+		return super.toJavaResult(r, Void.class);
 	}
 
-	private Result<Boolean> clt_atomicTransfer(List<SignedTransaction> transactions){
+	private Result<Void> clt_atomicTransfer(List<SignedTransaction> transactions){
 		Response r = target.path("transfer").path("atomic")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(transactions, MediaType.APPLICATION_JSON));
-		return super.toJavaResult(r, Boolean.class);
+		return super.toJavaResult(r, Void.class);
 	}
 
 	private Result<Double> clt_balance(String account){
@@ -89,13 +89,13 @@ public class RestWalletClient extends RestClient implements Wallet {
 		Response r = target.path("ledger")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.get();
-		return super.toJavaResult(r, new GenericType<List<Account>>() {});
+		return super.toJavaResult(r, new GenericType<>() {});
 	}
 
-	private Result<Boolean> clt_admin(Transaction transaction){
+	private Result<Void> clt_admin(Transaction transaction){
 		Response r = target.path("admin")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
-		return super.toJavaResult(r, Boolean.class);
+		return super.toJavaResult(r, Void.class);
 	}
 }

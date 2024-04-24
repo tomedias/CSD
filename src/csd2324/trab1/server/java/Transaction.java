@@ -2,9 +2,9 @@ package csd2324.trab1.server.java;
 
 
 public class Transaction{
-    private String from;
-    private String to;
-    private double amount;
+    private final String from;
+    private final String to;
+    private final double amount;
 
 
 

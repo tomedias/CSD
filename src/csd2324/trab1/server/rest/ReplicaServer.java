@@ -32,42 +32,22 @@ public class ReplicaServer extends DefaultSingleRecoverable {
 
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(command));
-            ByteArrayOutputStream out;
             String commandString = in.readUTF();
             switch(commandString){
                 case "transfer":
                     String signedTransaction = in.readUTF();
                     SignedTransaction transaction = JSON.decode(signedTransaction, SignedTransaction.class);
-                    boolean value = fromJavaResult(wallet.transfer(transaction));
-                    out = new ByteArrayOutputStream(10000);
-                    new DataOutputStream(out).writeBoolean(value);
-                    return out.toByteArray();
+                    fromJavaResult(wallet.transfer(transaction));
+                    break;
                 case "balance":
                     String account = in.readUTF();
                     System.out.println("Checking balance of account " + account);
-                    double balance = fromJavaResult(wallet.balance(account));
-                    out = new ByteArrayOutputStream(10000);
-                    new DataOutputStream(out).writeDouble(balance);
-                    return out.toByteArray();
-                case "test":
-
-                    System.out.println("Test command");
-                    String test  = fromJavaResult(wallet.test());
-                    out = new ByteArrayOutputStream(10000);
-                    new DataOutputStream(out).writeUTF(test);
-                    return out.toByteArray();
-                case "ledger":
-                    System.out.println("Ledger");
-                    String list = JSON.encode(fromJavaResult(wallet.ledger()));
-                    out = new ByteArrayOutputStream(10000);
-                    new DataOutputStream(out).writeUTF(list);
-                    return out.toByteArray();
+                    fromJavaResult(wallet.balance(account));
+                    break;
                 case "giveme":
                     Transaction admin_transaction = JSON.decode(in.readUTF(),Transaction.class)  ;
-                    boolean return_value = fromJavaResult(wallet.admin(admin_transaction));
-                    out = new ByteArrayOutputStream(1);
-                    new DataOutputStream(out).writeBoolean(return_value);
-                    return out.toByteArray();
+                    fromJavaResult(wallet.admin(admin_transaction));
+                    break;
                 default:
                     System.out.println("Unknown command: " + commandString);
             }
@@ -77,7 +57,6 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         return new byte[0];
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
         try {
@@ -92,8 +71,18 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                     out = new ByteArrayOutputStream(10000);
                     new DataOutputStream(out).writeDouble(balance);
                     return out.toByteArray();
-
-
+                case "test":
+                    System.out.println("Test command");
+                    String test  = fromJavaResult(wallet.test());
+                    out = new ByteArrayOutputStream(10000);
+                    new DataOutputStream(out).writeUTF(test);
+                    return out.toByteArray();
+                case "ledger":
+                    System.out.println("Ledger");
+                    String ledger = JSON.encode(fromJavaResult(wallet.ledger()));
+                    out = new ByteArrayOutputStream(10000);
+                    new DataOutputStream(out).writeUTF(ledger);
+                    return out.toByteArray();
                 default:
                     System.out.println("Unknown command: " + commandString);
             }
@@ -113,7 +102,6 @@ public class ReplicaServer extends DefaultSingleRecoverable {
 
 
 
-    @SuppressWarnings("unchecked")
     @Override
     public void installSnapshot(byte[] state) {
         try {
@@ -162,27 +150,15 @@ public class ReplicaServer extends DefaultSingleRecoverable {
      * Translates a Result<T> to a HTTP Status code
      */
     protected static Response.Status statusCodeFrom(Result<?> result) {
-        switch (result.error()) {
-            case CONFLICT:
-                return Response.Status.CONFLICT;
-            case NOT_FOUND:
-                return Response.Status.NOT_FOUND;
-            case FORBIDDEN:
-                return Response.Status.FORBIDDEN;
-            case TIMEOUT:
-            case BAD_REQUEST:
-                return Response.Status.BAD_REQUEST;
-            case NOT_IMPLEMENTED:
-                return Response.Status.NOT_IMPLEMENTED;
-            case INTERNAL_ERROR:
-                return Response.Status.INTERNAL_SERVER_ERROR;
-            case REDIRECTED:
-                return result.errorValue() == null ? Response.Status.NO_CONTENT : Response.Status.OK;
-            case OK:
-                return result.value() == null ? Response.Status.NO_CONTENT : Response.Status.OK;
-
-            default:
-                return Response.Status.INTERNAL_SERVER_ERROR;
-        }
+        return switch (result.error()) {
+            case CONFLICT -> Response.Status.CONFLICT;
+            case NOT_FOUND -> Response.Status.NOT_FOUND;
+            case FORBIDDEN -> Response.Status.FORBIDDEN;
+            case TIMEOUT, BAD_REQUEST -> Response.Status.BAD_REQUEST;
+            case NOT_IMPLEMENTED -> Response.Status.NOT_IMPLEMENTED;
+            case REDIRECTED -> result.errorValue() == null ? Response.Status.NO_CONTENT : Response.Status.OK;
+            case OK -> result.value() == null ? Response.Status.NO_CONTENT : Response.Status.OK;
+            default -> Response.Status.INTERNAL_SERVER_ERROR;
+        };
     }
 }

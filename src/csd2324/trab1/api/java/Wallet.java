@@ -6,11 +6,9 @@ import csd2324.trab1.server.java.Transaction;
 import java.util.List;
 
 public interface Wallet {
-    static String SERVICE_NAME = "wallet";
+    Result<Void> transfer(SignedTransaction transaction);
 
-    Result<Boolean> transfer(SignedTransaction transaction);
-
-    Result<Boolean> atomicTransfer(List<SignedTransaction> transactions);
+    Result<Void> atomicTransfer(List<SignedTransaction> transactions);
 
     Result<Double> balance(String account);
 
@@ -18,5 +16,5 @@ public interface Wallet {
 
     Result<String> test();
 
-    Result<Boolean> admin(Transaction transaction);
+    Result<Void> admin(Transaction transaction);
 }

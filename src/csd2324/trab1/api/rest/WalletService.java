@@ -15,20 +15,18 @@ public interface WalletService{
 
     String Path = "/wallet";
     String ACCOUNT = "account";
-    String QUANTITY = "quantity";
-    String ADMIN = "admin";
 
     @POST
     @Path("/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    boolean transfer(SignedTransaction signedTransaction);
+    void transfer(SignedTransaction signedTransaction);
 
     @POST
     @Path("/transfer/atomic")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    boolean atomicTransfer(List<SignedTransaction> transactions);
+    void atomicTransfer(List<SignedTransaction> transactions);
 
     @GET
     @Path("/balance")
@@ -47,6 +45,6 @@ public interface WalletService{
     @POST
     @Path("/admin")
     @Produces(MediaType.APPLICATION_JSON)
-    boolean admin(Transaction transaction);
+    void admin(Transaction transaction);
 
 }

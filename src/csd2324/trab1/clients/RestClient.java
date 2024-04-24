@@ -53,7 +53,6 @@ public class RestClient {
 				Log.fine("Timeout: " + x.getMessage());
 				Sleep.ms(RETRY_SLEEP);
 			} catch (Exception x) {
-				x.printStackTrace();
 				return error(ErrorCode.INTERNAL_ERROR);
 			}
 		System.err.println("TIMEOUT...");
@@ -65,9 +64,9 @@ public class RestClient {
 			var status = r.getStatusInfo().toEnum();
 			if (status == Status.OK && r.hasEntity())
 				return ok(r.readEntity(new GenericType<T>(){}));
-			else 
+			else
 				if( status == Status.NO_CONTENT) return ok();
-			
+
 			return error(getErrorCodeFrom(status.getStatusCode()));
 		} finally {
 			r.close();
@@ -109,7 +108,6 @@ public class RestClient {
 		case 403 -> ErrorCode.FORBIDDEN;
 		case 404 -> ErrorCode.NOT_FOUND;
 		case 400 -> ErrorCode.BAD_REQUEST;
-		case 500 -> ErrorCode.INTERNAL_ERROR;
 		case 501 -> ErrorCode.NOT_IMPLEMENTED;
 		default -> ErrorCode.INTERNAL_ERROR;
 		};

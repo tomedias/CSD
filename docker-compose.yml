@@ -4,35 +4,35 @@ services:
     image: myapp:latest
     ports:
       - "11000:11000"
-    command: java -jar /app/ReplicaServer-jar-with-dependencies.jar 0
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/ReplicaServer-jar-with-dependencies.jar 0
     networks:
       - app-network
   replica1:
     image: myapp:latest
     ports:
       - "11010:11010"
-    command: java -jar /app/ReplicaServer-jar-with-dependencies.jar 1
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/ReplicaServer-jar-with-dependencies.jar 1
     networks:
       - app-network
   replica2:
     image: myapp:latest
     ports:
       - "11020:11020"
-    command: java -jar /app/ReplicaServer-jar-with-dependencies.jar 2
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/ReplicaServer-jar-with-dependencies.jar 2
     networks:
       - app-network
   replica3:
     image: myapp:latest
     ports:
       - "11030:11030"
-    command: java -jar /app/ReplicaServer-jar-with-dependencies.jar 3
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/ReplicaServer-jar-with-dependencies.jar 3
     networks:
       - app-network
   proxy:
     image: myapp:latest
     ports:
       - "3456:3456"
-    command: java -jar /app/RestWalletServer-jar-with-dependencies.jar
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar
     networks:
       - app-network
 networks:

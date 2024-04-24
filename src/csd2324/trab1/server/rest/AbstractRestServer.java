@@ -10,7 +10,7 @@ import java.net.URI;
 public abstract class AbstractRestServer extends AbstractServer {
 
     private static final String REST_CTX = "/rest";
-    protected AbstractRestServer(Logger log, String service, int port) {
+    protected AbstractRestServer(Logger log,int port) {
         super(log, String.format(SERVER_BASE_URI, IP.hostName(), port, REST_CTX));
     }
 

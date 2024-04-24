@@ -49,6 +49,9 @@ public class test {
                     double amount = new Scanner(System.in).nextDouble();
                     System.out.println(client.transfer(new Transaction(map.get(from).getId(),map.get(to).getId(),amount)));
                 }
+                case "test" -> {
+                    System.out.println(client.test());
+                }
                 default -> System.out.println("Unexpected value: " + command);
             }
         }

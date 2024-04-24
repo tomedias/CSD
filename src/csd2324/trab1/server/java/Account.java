@@ -2,7 +2,7 @@ package csd2324.trab1.server.java;
 
 public class Account{
 
-    private String id;
+    private final String id;
     private double balance;
 
     public Account() {
@@ -22,16 +22,9 @@ public class Account{
         return id;
     }
 
-    protected void setId(String id) {
-        this.id = id;
-    }
 
     public double getBalance() {
         return balance;
-    }
-
-    protected void setBalance(double balance) {
-        this.balance = balance;
     }
 
 

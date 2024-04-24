@@ -12,11 +12,10 @@ RestWalletServer extends AbstractRestServer{
     public static final int PORT = 3456;
 
 
-    private static Logger Log = Logger.getLogger(RestWalletServer.class.getName());
+    private static final Logger Log = Logger.getLogger(RestWalletServer.class.getName());
 
     RestWalletServer(){
-        super(Log, Wallet.SERVICE_NAME, PORT);
-        Log.info("Test com logger");
+        super(Log,PORT);
     }
 
     @Override

@@ -23,7 +23,7 @@ public class Client{
 
 
     
-    public Result<Boolean> transfer(Transaction transaction) {
+    public Result<Void> transfer(Transaction transaction) {
         KeyPair keyPair = accountsMap.get(transaction.getFrom());
         PrivateKey privateKey = keyPair.getPrivate();
         return restClient.transfer(new SignedTransaction(privateKey,transaction));
@@ -31,7 +31,7 @@ public class Client{
 
 
     
-    public Result<Boolean> atomicTransfer(List<Transaction> transactions) {
+    public Result<Void> atomicTransfer(List<Transaction> transactions) {
         List<SignedTransaction> list_signed = new ArrayList<>();
         for(Transaction transaction : transactions){
             KeyPair keyPair = accountsMap.get(transaction.getFrom());
@@ -58,7 +58,7 @@ public class Client{
 
 
     
-    public Result<Boolean> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
+    public Result<Void> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
 
         return restClient.admin(transaction);
     }
