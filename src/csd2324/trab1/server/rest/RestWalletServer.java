@@ -10,12 +10,13 @@ RestWalletServer extends AbstractRestServer{
 
 
     public static final int PORT = 3456;
-
+    public static int DEVIATE;
 
     private static final Logger Log = Logger.getLogger(RestWalletServer.class.getName());
 
-    RestWalletServer(){
+    RestWalletServer(String agr){
         super(Log,PORT);
+        DEVIATE = Integer.parseInt(agr);
     }
 
     @Override
@@ -26,6 +27,6 @@ RestWalletServer extends AbstractRestServer{
 
 
     public static void main(String[] args) throws Exception {
-        new RestWalletServer().start(PORT);
+        new RestWalletServer(args[0]).start(PORT);
     }
 }

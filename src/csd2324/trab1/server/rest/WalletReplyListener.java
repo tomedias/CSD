@@ -6,8 +6,11 @@ import bftsmart.tom.RequestContext;
 import bftsmart.tom.core.messages.TOMMessage;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 public class WalletReplyListener implements ReplyListener {
+
+    private static Logger Log = Logger.getLogger(WalletReplyListener.class.getName());
 
     AsynchServiceProxy serviceProxy;
     private int replies = 0;
@@ -26,14 +29,14 @@ public class WalletReplyListener implements ReplyListener {
         StringBuilder builder = new StringBuilder();
         builder.append("[RequestContext] id: " + requestContext.getReqId() + " type: " + requestContext.getRequestType());
         builder.append(" [TOMMessage reply] sender id: " + tomMessage.getSender() + " Hash content: " + Arrays.toString(tomMessage.getContent()));
-        System.out.println(builder.toString());
+        Log.info(builder.toString());
 
         replies++;
 
         double q = Math.ceil((double) (serviceProxy.getViewManager().getCurrentViewN() + serviceProxy.getViewManager().getCurrentViewF() + 1) / 2.0);
 
         if (replies >= q) {
-            System.out.println("[RequestContext] clean request context id: " + requestContext.getReqId());
+            Log.info("[RequestContext] clean request context id: " + requestContext.getReqId());
             serviceProxy.cleanAsynchRequest(requestContext.getOperationId());
         }
     }

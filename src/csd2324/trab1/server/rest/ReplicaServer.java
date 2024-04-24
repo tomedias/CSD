@@ -5,9 +5,11 @@ import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
 
+import com.google.gson.reflect.TypeToken;
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
 
+import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.JavaWallet;
 import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
@@ -17,6 +19,8 @@ import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
 
@@ -29,7 +33,6 @@ public class ReplicaServer extends DefaultSingleRecoverable {
 
     @Override
     public byte[] appExecuteOrdered(byte[] command, MessageContext msgCtx) {
-
         try {
             DataInputStream in = new DataInputStream(new ByteArrayInputStream(command));
             String commandString = in.readUTF();
@@ -47,6 +50,11 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                 case "giveme":
                     Transaction admin_transaction = JSON.decode(in.readUTF(),Transaction.class)  ;
                     fromJavaResult(wallet.admin(admin_transaction));
+                    break;
+                case "atomic":
+                    String signedTransactions = in.readUTF();
+                    List<SignedTransaction> transactions = JSON.decode(signedTransactions, new TypeToken<List<SignedTransaction>>() {});
+                    fromJavaResult(wallet.atomicTransfer(transactions));
                     break;
                 default:
                     System.out.println("Unknown command: " + commandString);

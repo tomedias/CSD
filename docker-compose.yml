@@ -1,4 +1,4 @@
-version: '3'
+version: '3.8'
 services:
   replica0:
     image: myapp:latest
@@ -23,18 +23,64 @@ services:
       - app-network
   replica3:
     image: myapp:latest
+
     ports:
       - "11030:11030"
     command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/ReplicaServer-jar-with-dependencies.jar 3
     networks:
       - app-network
-  proxy:
+  restServer_1:
     image: myapp:latest
     ports:
       - "3456:3456"
-    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 250000000
     networks:
       - app-network
+      - loadbalancer
+
+  restServer_2:
+      image: myapp:latest
+      ports:
+        - "3457:3457"
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 500000000
+      networks:
+        - app-network
+        - loadbalancer
+
+  restServer_3:
+      image: myapp:latest
+      ports:
+        - "3458:3458"
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 750000000
+      networks:
+        - app-network
+        - loadbalancer
+
+  restServer_4:
+      image: myapp:latest
+      ports:
+        - "3459:3459"
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 1000000000
+      networks:
+        - app-network
+        - loadbalancer
+
+  nginx:
+      image: nginx:latest
+      ports:
+        - "80:80"
+      volumes:
+        - ./nginx.conf:/etc/nginx/nginx.conf
+      depends_on:
+        - restServer_1
+        - restServer_2
+        - restServer_3
+        - restServer_4
+      networks:
+        - app-network
+        - loadbalancer
 networks:
   app-network:
+    driver: bridge
+  loadbalancer:
     driver: bridge

@@ -4,9 +4,7 @@ import csd2324.trab1.clients.Client;
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.Transaction;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class test {
@@ -51,6 +49,29 @@ public class test {
                 }
                 case "test" -> {
                     System.out.println(client.test());
+                }
+                case "atomic" -> {
+                    System.out.println("Enter the account name of the sender:");
+                    String from = new Scanner(System.in).nextLine();
+                    System.out.println("Enter the account name of the receiver:");
+                    String to = new Scanner(System.in).nextLine();
+                    List<Transaction> transactions = new ArrayList<>();
+                    for (int i =0 ; i< 50; i++){
+                        transactions.add(new Transaction(map.get(from).getId(),map.get(to).getId(),1));
+                    }
+                    System.out.println(client.atomicTransfer(transactions));
+                }
+                case "spam" -> {
+
+                    System.out.println("Enter the account name of the receiver:");
+                    String to = new Scanner(System.in).nextLine();
+                    for(int i=0; i< 500; i++){
+                        new Thread(() -> {
+                            System.out.println(client.admin(new Transaction(admin_id,map.get(to).getId(),1)));
+                        }).start();
+
+                    }
+
                 }
                 default -> System.out.println("Unexpected value: " + command);
             }

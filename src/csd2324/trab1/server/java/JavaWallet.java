@@ -33,6 +33,7 @@ public class JavaWallet implements Wallet {
         Account toAccount = accountMap.get(to);
         fromAccount.removeBalance(amount);
         toAccount.addBalance(amount);
+        System.out.println("From " + fromAccount.getBalance() + " to " + toAccount.getBalance() + " amount " + amount);
     }
     @Override
     public Result<Void> transfer(SignedTransaction signed_transaction) {
@@ -49,17 +50,19 @@ public class JavaWallet implements Wallet {
             Result<Void> code = checkTransfer(transaction);
             if(!code.isOK()) return code;
         }
+        System.out.println("All transactions are valid");
         for(SignedTransaction signed_transaction : signed_transactions){
             Transaction transaction = signed_transaction.getTransaction();
-            transferWithoutChecking(transaction.getFrom(),transaction.getFrom(),transaction.getAmount());
+            transferWithoutChecking(transaction.getFrom(),transaction.getTo(),transaction.getAmount());
         }
+        System.out.println("Money Wired");
         return ok();
     }
 
     @Override
     public Result<Double> balance(String account) {
         Account fromAccount = accountMap.get(account);
-        if(fromAccount==null) return ok(0.0);
+        if(fromAccount==null) return ok(-1.0); // for debugging purposes
         return ok(fromAccount.getBalance());
     }
 

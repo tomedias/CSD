@@ -15,6 +15,7 @@ import jakarta.inject.Singleton;
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 
@@ -23,14 +24,14 @@ import java.util.logging.Logger;
 public class RestWalletResource implements WalletService {
     private static Logger Log = Logger.getLogger(RestWalletResource.class.getName());
 
-    private int process = 0;
+    private AtomicInteger processID = new AtomicInteger(RestWalletServer.DEVIATE);
     public RestWalletResource() {
 
     }
 
     @Override
     public void transfer(SignedTransaction transaction) {
-        process++;
+        int process = processID.addAndGet(1);
         try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream(100);
             new DataOutputStream(out).writeUTF("transfer");
@@ -43,12 +44,20 @@ public class RestWalletResource implements WalletService {
 
     @Override
     public void atomicTransfer(List<SignedTransaction> signed_transactions) {
-        //TODO
+        int process = processID.addAndGet(1);
+        try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream(100);
+            new DataOutputStream(out).writeUTF("atomic");
+            new DataOutputStream(out).writeUTF(JSON.encode(signed_transactions));
+            counterProxy.invokeAsynchRequest(out.toByteArray(),new WalletReplyListener(counterProxy),TOMMessageType.ORDERED_REQUEST);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public double balance(String account) {
-        process++;
+        int process = processID.addAndGet(1);
         try(ServiceProxy counterProxy = new ServiceProxy(process)){
             ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
             new DataOutputStream(out).writeUTF("balance");
@@ -57,7 +66,7 @@ public class RestWalletResource implements WalletService {
             if(reply != null) {
                 return new DataInputStream(new ByteArrayInputStream(reply)).readDouble();
             } else {
-                System.out.println(", ERROR! Exiting.");
+                Log.info(", ERROR! Exiting.");
                 return 0;
             }
         }catch (IOException e) {
@@ -68,7 +77,7 @@ public class RestWalletResource implements WalletService {
 
     @Override
     public List<Account> ledger() {
-        process++;
+        int process = processID.addAndGet(1);
         try(ServiceProxy counterProxy = new ServiceProxy(process)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
             new DataOutputStream(out).writeUTF("ledger");
@@ -76,7 +85,7 @@ public class RestWalletResource implements WalletService {
             if (reply != null) {
                 return JSON.decode(new DataInputStream(new ByteArrayInputStream(reply)).readUTF(), new TypeToken<List<Account>>() {});
             } else {
-                System.out.println(", ERROR! Exiting.");
+                Log.info(", ERROR! Exiting.");
                 return Collections.emptyList();
 
             }
@@ -87,7 +96,7 @@ public class RestWalletResource implements WalletService {
 
     @Override
     public String test(){
-        process++;
+        int process = processID.addAndGet(1);
         try(ServiceProxy counterProxy = new ServiceProxy(process)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream(1000);
             new DataOutputStream(out).writeUTF("test");
@@ -109,12 +118,14 @@ public class RestWalletResource implements WalletService {
 
     @Override
     public void admin(Transaction transaction) {
-        process++;
+        int process = processID.addAndGet(1);
         try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+        //try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream(100);
             new DataOutputStream(out).writeUTF("giveme");
             new DataOutputStream(out).writeUTF(JSON.encode(transaction));
             counterProxy.invokeAsynchRequest(out.toByteArray(), new WalletReplyListener(counterProxy), TOMMessageType.ORDERED_REQUEST); //magic happens here
+            //counterProxy.invokeOrdered(out.toByteArray()); //magic happens here
         }catch (IOException e) {
             throw new RuntimeException(e);
         }

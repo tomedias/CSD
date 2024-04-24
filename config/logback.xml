@@ -25,7 +25,7 @@
   </appender>
 
 
-  <root level="INFO">
+  <root ref="ASYNC">
     <!-- To use async logging use ref="ASYNC" instead -->
 
   </root>
