@@ -10,8 +10,6 @@ import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 import jakarta.inject.Singleton;
-
-
 import java.io.*;
 import java.util.Collections;
 import java.util.List;
@@ -119,13 +117,15 @@ public class RestWalletResource implements WalletService {
     @Override
     public void admin(Transaction transaction) {
         int process = processID.addAndGet(1);
-        try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+        System.out.println(process);
         //try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+        try (ServiceProxy counterProxy = new ServiceProxy(process)) {
             ByteArrayOutputStream out = new ByteArrayOutputStream(100);
             new DataOutputStream(out).writeUTF("giveme");
             new DataOutputStream(out).writeUTF(JSON.encode(transaction));
-            counterProxy.invokeAsynchRequest(out.toByteArray(), new WalletReplyListener(counterProxy), TOMMessageType.ORDERED_REQUEST); //magic happens here
-            //counterProxy.invokeOrdered(out.toByteArray()); //magic happens here
+            //counterProxy.invokeAsynchRequest(out.toByteArray(), new WalletReplyListener(counterProxy), TOMMessageType.ORDERED_REQUEST); //magic happens here
+            counterProxy.invokeOrdered(out.toByteArray()); //magic happens here
+
         }catch (IOException e) {
             throw new RuntimeException(e);
         }

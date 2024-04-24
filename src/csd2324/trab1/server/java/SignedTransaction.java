@@ -1,8 +1,7 @@
 package csd2324.trab1.server.java;
+
 import csd2324.trab1.utils.JSON;
 import csd2324.trab1.utils.Secure;
-
-
 import java.security.PrivateKey;
 
 public class SignedTransaction {

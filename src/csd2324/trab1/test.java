@@ -1,8 +1,11 @@
 package csd2324.trab1;
 
+import bftsmart.tom.MessageContext;
+import csd2324.trab1.api.java.Result;
 import csd2324.trab1.clients.Client;
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.Transaction;
+import csd2324.trab1.utils.JSON;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -55,7 +58,22 @@ public class test {
                     System.out.println(client.transfer(new Transaction(map.get(from).getId(),map.get(to).getId(),amount)));
                 }
                 case "test" -> {
-                    System.out.println(client.test());
+                    Result<String> result = client.test();
+                    if(result.isOK()){
+
+                        MessageContext messageContext = JSON.decode(result.value(),MessageContext.class);
+
+                        System.out.println(messageContext.getConsensusId());
+                        System.out.println(messageContext.getOperationId());
+                        System.out.println(messageContext.getSender());
+                        System.out.println(messageContext.getSequence());
+                        System.out.println(messageContext.getTimestamp());
+                        System.out.println(messageContext.getProof());
+                        System.out.println(messageContext.getSignature());
+                        System.out.println(messageContext.getNumOfNonces());
+                    }
+
+
                 }
                 case "atomic" -> {
                     System.out.println("Enter the account name of the sender:");

@@ -2,6 +2,7 @@ package csd2324.trab1.clients;
 
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Result.ErrorCode;
+import csd2324.trab1.utils.InsecureHostnameVerifier;
 import csd2324.trab1.utils.Sleep;
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;

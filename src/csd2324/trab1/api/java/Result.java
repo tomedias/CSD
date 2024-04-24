@@ -2,6 +2,10 @@ package csd2324.trab1.api.java;
 
 
 /**
+ * This interface was given to me by the teacher smduarte during the course of Distributed Systems.
+ */
+
+/**
  *
  * Represents the result of an operation, either wrapping a result of the given type,
  * or an error.

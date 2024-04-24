@@ -1,9 +1,7 @@
 package csd2324.trab1.api.rest;
 
-
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.SignedTransaction;
-
 import csd2324.trab1.server.java.Transaction;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -43,7 +41,7 @@ public interface WalletService{
     String test();
 
     @POST
-    @Path("/admin")
+    @Path("/giveme")
     @Produces(MediaType.APPLICATION_JSON)
     void admin(Transaction transaction);
 

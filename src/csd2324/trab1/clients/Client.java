@@ -4,11 +4,9 @@ import csd2324.trab1.api.java.Result;
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
-
 import java.security.*;
 import java.util.*;
 import csd2324.trab1.utils.Secure;
-
 
 
 public class Client{
@@ -60,7 +58,7 @@ public class Client{
     
     public Result<Void> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
 
-        return restClient.admin(transaction);
+        return restClient.giveme(transaction);
     }
 
     public Account createAccount(){

@@ -4,7 +4,6 @@ import bftsmart.communication.client.ReplyListener;
 import bftsmart.tom.AsynchServiceProxy;
 import bftsmart.tom.RequestContext;
 import bftsmart.tom.core.messages.TOMMessage;
-
 import java.util.Arrays;
 import java.util.logging.Logger;
 

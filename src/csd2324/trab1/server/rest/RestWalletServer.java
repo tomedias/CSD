@@ -1,22 +1,19 @@
 package csd2324.trab1.server.rest;
 
-import csd2324.trab1.api.java.Wallet;
 import org.glassfish.jersey.server.ResourceConfig;
-
 import java.util.logging.Logger;
 
-public class
-RestWalletServer extends AbstractRestServer{
+public class RestWalletServer extends AbstractRestServer{
 
 
-    public static final int PORT = 3456;
+    public static int PORT;
     public static int DEVIATE;
 
     private static final Logger Log = Logger.getLogger(RestWalletServer.class.getName());
 
-    RestWalletServer(String agr){
+    RestWalletServer(String arg){
         super(Log,PORT);
-        DEVIATE = Integer.parseInt(agr)*250000000;
+        DEVIATE = Integer.parseInt(arg)*250000000;
     }
 
     @Override
@@ -27,6 +24,11 @@ RestWalletServer extends AbstractRestServer{
 
 
     public static void main(String[] args) throws Exception {
+        if (args.length != 2) {
+            System.err.println("Usage: RestWalletServer <server_nr> <port>");
+            System.exit(1);
+        }
+        PORT = Integer.parseInt(args[1]);
         new RestWalletServer(args[0]).start(PORT);
     }
 }

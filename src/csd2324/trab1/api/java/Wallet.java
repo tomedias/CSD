@@ -2,7 +2,6 @@ package csd2324.trab1.api.java;
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
-
 import java.util.List;
 
 public interface Wallet {
@@ -16,5 +15,5 @@ public interface Wallet {
 
     Result<String> test();
 
-    Result<Void> admin(Transaction transaction);
+    Result<Void> giveme(Transaction transaction);
 }

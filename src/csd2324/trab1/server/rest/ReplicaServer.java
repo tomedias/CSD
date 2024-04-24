@@ -4,22 +4,16 @@ package csd2324.trab1.server.rest;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
-
 import com.google.gson.reflect.TypeToken;
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
-
-import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.JavaWallet;
 import csd2324.trab1.server.java.SignedTransaction;
 import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 import jakarta.ws.rs.WebApplicationException;
-
 import jakarta.ws.rs.core.Response;
-
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
@@ -30,6 +24,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         new ServiceReplica(id, this, this);
         wallet = new JavaWallet();
     }
+
 
     @Override
     public byte[] appExecuteOrdered(byte[] command, MessageContext msgCtx) {
@@ -49,7 +44,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                     break;
                 case "giveme":
                     Transaction admin_transaction = JSON.decode(in.readUTF(),Transaction.class)  ;
-                    fromJavaResult(wallet.admin(admin_transaction));
+                    fromJavaResult(wallet.giveme(admin_transaction));
                     break;
                 case "atomic":
                     String signedTransactions = in.readUTF();

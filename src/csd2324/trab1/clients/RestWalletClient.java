@@ -14,9 +14,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
-
-
-
 public class RestWalletClient extends RestClient implements Wallet {
 
 	final WebTarget target;
@@ -53,7 +50,7 @@ public class RestWalletClient extends RestClient implements Wallet {
 	}
 
 	@Override
-	public Result<Void> admin(Transaction transaction) {
+	public Result<Void> giveme(Transaction transaction) {
 		return super.reTry(() -> clt_admin(transaction));
 	}
 
@@ -93,7 +90,7 @@ public class RestWalletClient extends RestClient implements Wallet {
 	}
 
 	private Result<Void> clt_admin(Transaction transaction){
-		Response r = target.path("admin")
+		Response r = target.path("giveme")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, Void.class);

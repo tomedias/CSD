@@ -6,7 +6,6 @@ import csd2324.trab1.api.java.Wallet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 import static csd2324.trab1.api.java.Result.ok;
 import static csd2324.trab1.api.java.Result.error;
 import static csd2324.trab1.api.java.Result.ErrorCode.FORBIDDEN;
@@ -77,7 +76,7 @@ public class JavaWallet implements Wallet {
     }
 
     @Override
-    public Result<Void> admin(Transaction transaction) {
+    public Result<Void> giveme(Transaction transaction) {
         String admin = transaction.getFrom();
         String accountID = transaction.getTo();
         double quantity = transaction.getAmount();

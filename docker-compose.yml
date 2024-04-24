@@ -29,11 +29,12 @@ services:
     command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/ReplicaServer-jar-with-dependencies.jar 3
     networks:
       - app-network
+
   restServer_1:
     image: myapp:latest
     ports:
       - "3456:3456"
-    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 1
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 1 3456
     networks:
       - app-network
       - loadbalancer
@@ -42,7 +43,7 @@ services:
       image: myapp:latest
       ports:
         - "3457:3457"
-      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 2
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 2 3457
       networks:
         - app-network
         - loadbalancer
@@ -51,7 +52,7 @@ services:
       image: myapp:latest
       ports:
         - "3458:3458"
-      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 3
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 3 3458
       networks:
         - app-network
         - loadbalancer
@@ -60,7 +61,7 @@ services:
       image: myapp:latest
       ports:
         - "3459:3459"
-      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 4
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 4 3459
       networks:
         - app-network
         - loadbalancer
