@@ -13,6 +13,7 @@ import jakarta.ws.rs.core.Response.Status;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 
+import javax.net.ssl.HttpsURLConnection;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
 
@@ -36,12 +37,11 @@ public class RestClient {
 	RestClient(String serverURI) {
 		this.serverURI = serverURI;
 		this.config = new ClientConfig();
-
 		config.property(ClientProperties.READ_TIMEOUT, READ_TIMEOUT);
 		config.property(ClientProperties.CONNECT_TIMEOUT, CONNECT_TIMEOUT);
 
 		this.client = ClientBuilder.newClient(config);
-		//HttpsURLConnection.setDefaultHostnameVerifier(new InsecureHostnameVerifier());
+		HttpsURLConnection.setDefaultHostnameVerifier(new InsecureHostnameVerifier());
 
 	}
 

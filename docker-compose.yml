@@ -33,7 +33,7 @@ services:
     image: myapp:latest
     ports:
       - "3456:3456"
-    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 250000000
+    command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 1
     networks:
       - app-network
       - loadbalancer
@@ -42,7 +42,7 @@ services:
       image: myapp:latest
       ports:
         - "3457:3457"
-      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 500000000
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 2
       networks:
         - app-network
         - loadbalancer
@@ -51,7 +51,7 @@ services:
       image: myapp:latest
       ports:
         - "3458:3458"
-      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 750000000
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 3
       networks:
         - app-network
         - loadbalancer
@@ -60,7 +60,7 @@ services:
       image: myapp:latest
       ports:
         - "3459:3459"
-      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 1000000000
+      command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 4
       networks:
         - app-network
         - loadbalancer
@@ -68,9 +68,10 @@ services:
   nginx:
       image: nginx:latest
       ports:
-        - "80:80"
+        - "443:443"
       volumes:
         - ./nginx.conf:/etc/nginx/nginx.conf
+        - ./tls:/etc/nginx/tls
       depends_on:
         - restServer_1
         - restServer_2

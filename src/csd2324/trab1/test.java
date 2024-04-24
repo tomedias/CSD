@@ -4,6 +4,9 @@ import csd2324.trab1.clients.Client;
 import csd2324.trab1.server.java.Account;
 import csd2324.trab1.server.java.Transaction;
 
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -12,7 +15,11 @@ public class test {
     private static final String admin_id = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==";
     private static final Map<String, Account> map = new HashMap<>();
     public static void main(String[] args) {
-        Client client = new Client("http://localhost:3456/rest");
+
+
+        System.setProperty("javax.net.ssl.trustStore", "tls/truststore");
+        System.setProperty("javax.net.ssl.trustStorePassword","changeit");
+        Client client = new Client("https://localhost");
 
         while (true){
             System.out.println("Next command:");
@@ -65,7 +72,7 @@ public class test {
 
                     System.out.println("Enter the account name of the receiver:");
                     String to = new Scanner(System.in).nextLine();
-                    for(int i=0; i< 500; i++){
+                    for(int i=0; i< 50; i++){
                         new Thread(() -> {
                             System.out.println(client.admin(new Transaction(admin_id,map.get(to).getId(),1)));
                         }).start();

@@ -16,7 +16,7 @@ RestWalletServer extends AbstractRestServer{
 
     RestWalletServer(String agr){
         super(Log,PORT);
-        DEVIATE = Integer.parseInt(agr);
+        DEVIATE = Integer.parseInt(agr)*250000000;
     }
 
     @Override

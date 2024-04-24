@@ -4,6 +4,8 @@ import csd2324.trab1.server.java.AbstractServer;
 import csd2324.trab1.utils.IP;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
+
+import javax.net.ssl.SSLContext;
 import java.util.logging.Logger;
 import java.net.URI;
 

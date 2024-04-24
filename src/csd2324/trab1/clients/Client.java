@@ -14,7 +14,7 @@ import csd2324.trab1.utils.Secure;
 public class Client{
     
     private Map<String, KeyPair> accountsMap; // Account ID -> KeyPair
-    private final RestWalletClient restClient;
+    public final RestWalletClient restClient;
 
     public Client(String url){
         this.accountsMap = new HashMap<>();
