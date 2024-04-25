@@ -14,7 +14,6 @@ public abstract class AbstractServer {
         protected AbstractServer(Logger log, String serverURI) {
             this.Log = log;
             this.serverURI = serverURI;
-
         }
 
         abstract protected void start(int port);

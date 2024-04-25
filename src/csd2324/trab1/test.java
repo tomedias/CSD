@@ -58,22 +58,7 @@ public class test {
                     System.out.println(client.transfer(new Transaction(map.get(from).getId(),map.get(to).getId(),amount)));
                 }
                 case "test" -> {
-                    Result<String> result = client.test();
-                    if(result.isOK()){
-
-                        MessageContext messageContext = JSON.decode(result.value(),MessageContext.class);
-
-                        System.out.println(messageContext.getConsensusId());
-                        System.out.println(messageContext.getOperationId());
-                        System.out.println(messageContext.getSender());
-                        System.out.println(messageContext.getSequence());
-                        System.out.println(messageContext.getTimestamp());
-                        System.out.println(messageContext.getProof());
-                        System.out.println(messageContext.getSignature());
-                        System.out.println(messageContext.getNumOfNonces());
-                    }
-
-
+                    System.out.println(client.test());
                 }
                 case "atomic" -> {
                     System.out.println("Enter the account name of the sender:");
