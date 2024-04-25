@@ -1,4 +1,4 @@
-FROM openjdk:22-jdk
+FROM openjdk:21-jdk
 WORKDIR /app
 COPY /target/*.jar /app/
 COPY /config /app/config

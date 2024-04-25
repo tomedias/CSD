@@ -17,9 +17,10 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
-
+    private static Logger Log = Logger.getLogger(ReplicaServer.class.getName());
 
     private final ServiceReplica replica;
     private List<byte[]> ledger;
@@ -44,10 +45,9 @@ public class ReplicaServer extends DefaultSingleRecoverable {
 
     }
 
-
-
     @Override
     public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
+        Log.info("Unordered execution is not supported");
         try {
             byte[] request = CheckSignature(command);
             ledger.add(request);
@@ -55,15 +55,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
             throw new RuntimeException(e);
         }
         String answer = JSON.encode(ledger);
-        ByteArrayOutputStream out = new ByteArrayOutputStream(answer.length());
-        try {
-            new DataOutputStream(out).writeUTF(answer);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        return out.toByteArray();
-
-
+        return answer.getBytes();
     }
 
     private byte[] CheckSignature(byte[] command) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -83,6 +75,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
             System.exit(0);
         }
 
+
         return request;
     }
 
@@ -96,35 +89,14 @@ public class ReplicaServer extends DefaultSingleRecoverable {
 
 
 
+    @SuppressWarnings("unchecked")
     @Override
     public void installSnapshot(byte[] state) {
-        try {
-            ByteArrayInputStream bis = new ByteArrayInputStream(state);
-            ObjectInput in = new ObjectInputStream(bis);
-            ledger = JSON.decode(in.readUTF(), new TypeToken<ArrayList<byte[]>>() {});
-            in.close();
-            bis.close();
-        } catch (IOException e) {
-            System.err.println("[ERROR] Error deserializing state: "
-                    + e.getMessage());
-        }
+       ledger = JSON.decode(new String(state), new TypeToken<List<byte[]>>() {});
     }
 
     @Override
     public byte[] getSnapshot() {
-        try {
-            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-            ObjectOutput out = new ObjectOutputStream(bos);
-            out.writeUTF(JSON.encode(ledger));
-            out.flush();
-            bos.flush();
-            out.close();
-            bos.close();
-            return bos.toByteArray();
-        } catch (IOException ioe) {
-            System.err.println("[ERROR] Error serializing state: "
-                    + ioe.getMessage());
-            return "ERROR".getBytes();
-        }
+        return JSON.encode(ledger).getBytes();
     }
 }

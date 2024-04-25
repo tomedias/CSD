@@ -5,11 +5,9 @@ import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.TOMUtil;
 import com.google.gson.reflect.TypeToken;
-
 import csd2324.trab1.api.Account;
 import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
-import csd2324.trab1.api.java.Wallet;
 import csd2324.trab1.api.rest.WalletService;
 import csd2324.trab1.server.java.JavaWallet;
 import csd2324.trab1.utils.JSON;
@@ -27,10 +25,11 @@ import java.util.logging.Logger;
 
 @Singleton
 public class RestWalletResource implements WalletService {
-    private static Logger Log = Logger.getLogger(RestWalletResource.class.getName());
-    Random random = new Random();
+    private final static Logger Log = Logger.getLogger(RestWalletResource.class.getName());
+    private JavaWallet wallet;
+    private final Random random = new Random();
     public RestWalletResource() {
-
+        wallet = new JavaWallet();
     }
 
     @Override
@@ -43,6 +42,7 @@ public class RestWalletResource implements WalletService {
             new DataOutputStream(out).writeUTF(command);
             new DataOutputStream(out).writeUTF(transactionString);
             byte[] request = getSignedRequest(out.toByteArray(), counterProxy);
+
             counterProxy.invokeAsynchRequest(request,new WalletReplyListener(counterProxy),TOMMessageType.ORDERED_REQUEST);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -79,9 +79,11 @@ public class RestWalletResource implements WalletService {
                 Log.info(", ERROR! Exiting.");
                 return 0;
             }
-            List<byte[]> ledger = JSON.decode(new DataInputStream(new ByteArrayInputStream(reply)).readUTF(), new TypeToken<List<byte[]>>() {});
-            Wallet currentState = executeLedger(ledger);
-            return currentState.balance(account).isOK() ? currentState.balance(account).value() : 0;
+            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
+            JavaWallet state_wallet = this.wallet.copy();
+            executeLedger(ledger,state_wallet);
+            this.wallet = state_wallet;
+            return this.wallet.balance(account).isOK() ? this.wallet.balance(account).value() : 0;
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -101,9 +103,11 @@ public class RestWalletResource implements WalletService {
                 Log.info(", ERROR! Exiting.");
                 return Collections.emptyList();
             }
-            List<byte[]> ledger = JSON.decode(new DataInputStream(new ByteArrayInputStream(reply)).readUTF(), new TypeToken<List<byte[]>>() {});
-            Wallet currentState = executeLedger(ledger);
-            return currentState.ledger().isOK() ? currentState.ledger().value() : new LinkedList<>();
+            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
+            JavaWallet state_wallet = this.wallet.copy();
+            executeLedger(ledger,state_wallet);
+            this.wallet = state_wallet;
+            return this.wallet.ledger().isOK() ? this.wallet.ledger().value() : new LinkedList<>();
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -115,6 +119,7 @@ public class RestWalletResource implements WalletService {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(ServiceProxy counterProxy = new ServiceProxy(process)) {
             String command = "test";
+            Log.info("got here2");
             ByteArrayOutputStream out = new ByteArrayOutputStream(command.length());
             new DataOutputStream(out).writeUTF(command);
             byte[] request = getSignedRequest(out.toByteArray(),counterProxy);
@@ -123,9 +128,12 @@ public class RestWalletResource implements WalletService {
                 Log.info(", ERROR! Exiting.");
                 return "";
             }
-            List<byte[]> ledger = JSON.decode(new DataInputStream(new ByteArrayInputStream(reply)).readUTF(), new TypeToken<List<byte[]>>() {});
-            Wallet currentState = executeLedger(ledger);
-            return currentState.test().isOK() ? currentState.test().value() : "";
+            
+            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
+            JavaWallet state_wallet = this.wallet.copy();
+            executeLedger(ledger,state_wallet);
+            this.wallet = state_wallet;
+            return this.wallet.test().isOK() ? this.wallet.test().value() : "";
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -133,6 +141,7 @@ public class RestWalletResource implements WalletService {
 
     @Override
     public void admin(Transaction transaction) {
+        
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         System.out.println(process);
         try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
@@ -166,31 +175,26 @@ public class RestWalletResource implements WalletService {
         }
     }
 
-    private Wallet executeLedger(List<byte[]> ledger){
-        Wallet wallet = new JavaWallet();
-        for (byte[] command : ledger){
+    private void executeLedger(List<byte[]> ledger,JavaWallet wallet_copy){
+        for(int i = wallet_copy.getState(); i< ledger.size();i++){
+            byte[] operation =ledger.get(i);
             try {
-                DataInputStream in = new DataInputStream(new ByteArrayInputStream(command));
+                DataInputStream in = new DataInputStream(new ByteArrayInputStream(operation));
                 String commandString = in.readUTF();
                 switch(commandString){
                     case "transfer":
                         String signedTransaction = in.readUTF();
                         SignedTransaction transaction = JSON.decode(signedTransaction, SignedTransaction.class);
-                        wallet.transfer(transaction);
-                        break;
-                    case "balance":
-                        String account = in.readUTF();
-                        System.out.println("Checking balance of account " + account);
-                        wallet.balance(account);
+                        wallet_copy.transfer(transaction);
                         break;
                     case "giveme":
                         Transaction admin_transaction = JSON.decode(in.readUTF(),Transaction.class)  ;
-                        wallet.giveme(admin_transaction);
+                        wallet_copy.giveme(admin_transaction);
                         break;
                     case "atomic":
                         String signedTransactions = in.readUTF();
                         List<SignedTransaction> transactions = JSON.decode(signedTransactions, new TypeToken<List<SignedTransaction>>() {});
-                        wallet.atomicTransfer(transactions);
+                        wallet_copy.atomicTransfer(transactions);
                         break;
                     default:
                         System.out.println("Read operation, nothing to execute");
@@ -199,7 +203,7 @@ public class RestWalletResource implements WalletService {
                 throw new RuntimeException(e);
             }
         }
-        return wallet;
+        wallet_copy.setState(ledger.size());
     }
 
 

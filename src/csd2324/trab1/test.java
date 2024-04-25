@@ -1,15 +1,8 @@
 package csd2324.trab1;
 
-import bftsmart.tom.MessageContext;
 import csd2324.trab1.api.Account;
 import csd2324.trab1.api.Transaction;
-import csd2324.trab1.api.java.Result;
 import csd2324.trab1.clients.Client;
-import csd2324.trab1.utils.JSON;
-
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 
@@ -75,11 +68,17 @@ public class test {
 
                     System.out.println("Enter the account name of the receiver:");
                     String to = new Scanner(System.in).nextLine();
-                    for(int i=0; i< 50; i++){
+                    for(int i=0; i< 200; i++){
                         new Thread(() -> {
                             System.out.println(client.admin(new Transaction(admin_id,map.get(to).getId(),1)));
                         }).start();
 
+                    }
+
+                }
+                case "spam ledger" -> {
+                    for(int i=0; i< 50; i++){
+                        System.out.println(client.ledger());
                     }
 
                 }

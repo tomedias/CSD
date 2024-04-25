@@ -6,6 +6,8 @@ import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
+
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -17,8 +19,25 @@ import static csd2324.trab1.api.java.Result.ErrorCode.NOT_FOUND;
 
 public class JavaWallet implements Wallet {
 
-    final protected Map<String,Account> accountMap = new ConcurrentHashMap<>();
+    final protected Map<String,Account> accountMap = new HashMap<>();
     List<String> adminAccounts = List.of("MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==");
+    public int state = 0;
+
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
+    public JavaWallet(){
+    }
+
+    public JavaWallet(Map<String,Account> accountMap,int state){
+        this.accountMap.putAll(accountMap);
+        this.state = state;
+    }
 
     private Result<Void> checkTransfer(SignedTransaction signed_transaction){
         if(signed_transaction==null) return error(FORBIDDEN);
@@ -90,6 +109,10 @@ public class JavaWallet implements Wallet {
         account.addBalance(quantity);
         return ok();
 
+    }
+
+    public JavaWallet copy(){
+        return new JavaWallet(new HashMap<>(this.accountMap),this.state);
     }
 }
 
