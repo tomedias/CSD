@@ -24,11 +24,11 @@
 			<artifactId>bcprov-jdk18on</artifactId>
 			<version>1.78.1</version>
 		</dependency>
-		<dependency>
-			<groupId>com.yahoo.ycsb</groupId>
-			<artifactId>core</artifactId>
-			<version>0.1.4</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.yahoo.ycsb</groupId>-->
+<!--			<artifactId>core</artifactId>-->
+<!--			<version>0.1.4</version>-->
+<!--		</dependency>-->
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
