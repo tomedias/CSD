@@ -2,6 +2,7 @@ package csd2324.trab1.server.rest;
 
 
 import bftsmart.tom.MessageContext;
+import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
 import bftsmart.tom.util.TOMUtil;
@@ -37,12 +38,11 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         try {
             byte[] request = CheckSignature(command);
             ledger.add(request);
+            byte[] reply = JSON.encode(ledger).getBytes();
+            return getSignedRequest(reply);
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             throw new RuntimeException(e);
         }
-        return new byte[0];
-
-
     }
 
     @Override
@@ -51,11 +51,29 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         try {
             byte[] request = CheckSignature(command);
             ledger.add(request);
+            byte[] reply = JSON.encode(ledger).getBytes();
+            return getSignedRequest(reply);
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             throw new RuntimeException(e);
         }
-        String answer = JSON.encode(ledger);
-        return answer.getBytes();
+    }
+
+    private byte[] getSignedRequest(byte[] request){
+        try {
+            Signature eng;
+            eng = TOMUtil.getSigEngine();
+            eng.initSign(this.replica.getReplicaContext().getStaticConfiguration().getPrivateKey());
+            eng.update(request);
+            byte[] signature = eng.sign();
+            ByteBuffer buffer = ByteBuffer.allocate(request.length + signature.length + (Integer.BYTES * 2));
+            buffer.putInt(request.length);
+            buffer.put(request);
+            buffer.putInt(signature.length);
+            buffer.put(signature);
+            return buffer.array();
+        } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private byte[] CheckSignature(byte[] command) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
@@ -74,8 +92,6 @@ public class ReplicaServer extends DefaultSingleRecoverable {
             System.out.println("Client sent invalid signature!");
             System.exit(0);
         }
-
-
         return request;
     }
 
@@ -86,8 +102,6 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         }
         new ReplicaServer(Integer.parseInt(args[0]));
     }
-
-
 
     @SuppressWarnings("unchecked")
     @Override

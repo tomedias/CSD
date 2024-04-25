@@ -68,7 +68,7 @@ public class test {
 
                     System.out.println("Enter the account name of the receiver:");
                     String to = new Scanner(System.in).nextLine();
-                    for(int i=0; i< 200; i++){
+                    for(int i=0; i< 20; i++){
                         new Thread(() -> {
                             System.out.println(client.admin(new Transaction(admin_id,map.get(to).getId(),1)));
                         }).start();
