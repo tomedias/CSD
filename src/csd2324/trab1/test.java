@@ -1,10 +1,10 @@
 package csd2324.trab1;
 
 import bftsmart.tom.MessageContext;
+import csd2324.trab1.api.Account;
+import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.clients.Client;
-import csd2324.trab1.server.java.Account;
-import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 
 import java.io.File;

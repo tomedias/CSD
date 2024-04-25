@@ -4,10 +4,11 @@ import bftsmart.tom.AsynchServiceProxy;
 import bftsmart.tom.ServiceProxy;
 import bftsmart.tom.core.messages.TOMMessageType;
 import com.google.gson.reflect.TypeToken;
+
+import csd2324.trab1.api.Account;
+import csd2324.trab1.api.SignedTransaction;
+import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.rest.WalletService;
-import csd2324.trab1.server.java.Account;
-import csd2324.trab1.server.java.SignedTransaction;
-import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 import jakarta.inject.Singleton;
 import java.io.*;

@@ -1,4 +1,4 @@
-package csd2324.trab1.server.java;
+package csd2324.trab1.api;
 
 import csd2324.trab1.utils.JSON;
 import csd2324.trab1.utils.Secure;

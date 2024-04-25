@@ -1,8 +1,9 @@
 package csd2324.trab1.api.java;
-import csd2324.trab1.server.java.Account;
-import csd2324.trab1.server.java.SignedTransaction;
-import csd2324.trab1.server.java.Transaction;
 import java.util.List;
+
+import csd2324.trab1.api.Account;
+import csd2324.trab1.api.SignedTransaction;
+import csd2324.trab1.api.Transaction;
 
 public interface Wallet {
     Result<Void> transfer(SignedTransaction transaction);

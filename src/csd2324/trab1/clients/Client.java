@@ -1,9 +1,10 @@
 package csd2324.trab1.clients;
 
+import csd2324.trab1.api.Account;
+import csd2324.trab1.api.SignedTransaction;
+import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.java.Result;
-import csd2324.trab1.server.java.Account;
-import csd2324.trab1.server.java.SignedTransaction;
-import csd2324.trab1.server.java.Transaction;
+
 import java.security.*;
 import java.util.*;
 import csd2324.trab1.utils.Secure;

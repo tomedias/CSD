@@ -1,11 +1,12 @@
 package csd2324.trab1.api.rest;
 
-import csd2324.trab1.server.java.Account;
-import csd2324.trab1.server.java.SignedTransaction;
-import csd2324.trab1.server.java.Transaction;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import java.util.List;
+
+import csd2324.trab1.api.Account;
+import csd2324.trab1.api.SignedTransaction;
+import csd2324.trab1.api.Transaction;
 
 @Path(WalletService.Path)
 public interface WalletService{

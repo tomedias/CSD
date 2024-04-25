@@ -1,4 +1,4 @@
-package csd2324.trab1.server.java;
+package csd2324.trab1.api;
 
 
 public class Transaction{

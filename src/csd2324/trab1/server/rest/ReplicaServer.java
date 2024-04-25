@@ -5,11 +5,13 @@ import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
 import com.google.gson.reflect.TypeToken;
+
+import csd2324.trab1.api.SignedMessage;
+import csd2324.trab1.api.SignedTransaction;
+import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
 import csd2324.trab1.server.java.JavaWallet;
-import csd2324.trab1.server.java.SignedTransaction;
-import csd2324.trab1.server.java.Transaction;
 import csd2324.trab1.utils.JSON;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -78,6 +80,8 @@ public class ReplicaServer extends DefaultSingleRecoverable {
                     System.out.println("Test command");
                     String test  = fromJavaResult(wallet.test());
                     out = new ByteArrayOutputStream(10000);
+                    //SignedMessage message = new SignedMessage(test.getBytes());
+                    //message.addSignature();
                     new DataOutputStream(out).writeUTF(test);
                     return out.toByteArray();
                 case "ledger":

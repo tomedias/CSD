@@ -1,4 +1,4 @@
-package csd2324.trab1.server.java;
+package csd2324.trab1.api;
 
 public class Account{
 
@@ -28,12 +28,12 @@ public class Account{
     }
 
 
-    protected void removeBalance(double balance) {
+    public void removeBalance(double balance) {
         this.balance-=balance;
     }
 
 
-    protected void addBalance(double balance) {
+    public void addBalance(double balance) {
         this.balance+=balance;
     }
 
