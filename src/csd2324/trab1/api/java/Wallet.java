@@ -6,15 +6,15 @@ import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
 
 public interface Wallet {
-    Result<Void> transfer(SignedTransaction transaction);
+    Result<byte[]> transfer(SignedTransaction transaction);
 
-    Result<Void> atomicTransfer(List<SignedTransaction> transactions);
+    Result<byte[]> atomicTransfer(List<SignedTransaction> transactions);
 
-    Result<Double> balance(String account);
+    Result<byte[]> balance(String account);
 
-    Result<List<Account>> ledger();
+    Result<byte[]> ledger();
 
-    Result<String> test();
+    Result<byte[]> test();
 
-    Result<Void> giveme(Transaction transaction);
+    Result<byte[]> giveme(Transaction transaction);
 }

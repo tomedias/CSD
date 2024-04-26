@@ -19,31 +19,31 @@ public interface WalletService{
     @Path("/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    void transfer(SignedTransaction signedTransaction);
+    byte[] transfer(SignedTransaction signedTransaction);
 
     @POST
     @Path("/transfer/atomic")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    void atomicTransfer(List<SignedTransaction> transactions);
+    byte[] atomicTransfer(List<SignedTransaction> transactions);
 
     @GET
     @Path("/balance")
     @Produces(MediaType.APPLICATION_JSON)
-    double balance(@QueryParam(ACCOUNT) String account);
+    byte[] balance(@QueryParam(ACCOUNT) String account);
 
     @GET
     @Path("/ledger")
     @Produces(MediaType.APPLICATION_JSON)
-    List<Account> ledger();
+    byte[] ledger();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    String test();
+    byte[] test();
 
     @POST
     @Path("/giveme")
     @Produces(MediaType.APPLICATION_JSON)
-    void admin(Transaction transaction);
+    byte[] admin(Transaction transaction);
 
 }

@@ -25,74 +25,74 @@ public class RestWalletClient extends RestClient implements Wallet {
 
 
 	@Override
-	public Result<Void> transfer(SignedTransaction signedTransaction) {
+	public Result<byte[]> transfer(SignedTransaction signedTransaction) {
 		return super.reTry(() -> clt_transfer(signedTransaction));
 	}
 
 	@Override
-	public Result<Void> atomicTransfer(List<SignedTransaction> transactions) {
+	public Result<byte[]> atomicTransfer(List<SignedTransaction> transactions) {
 		return super.reTry(() -> clt_atomicTransfer(transactions));
 	}
 
 	@Override
-	public Result<Double> balance(String account) {
+	public Result<byte[]> balance(String account) {
 		return super.reTry(() -> clt_balance(account));
 	}
 
 	@Override
-	public Result<List<Account>> ledger() {
+	public Result<byte[]> ledger() {
 		return super.reTry(this::clt_ledger);
 	}
 
 	@Override
-	public Result<String> test() {
+	public Result<byte[]> test() {
 		return super.reTry(this::clt_test);
 	}
 
 	@Override
-	public Result<Void> giveme(Transaction transaction) {
+	public Result<byte[]> giveme(Transaction transaction) {
 		return super.reTry(() -> clt_admin(transaction));
 	}
 
-	private Result<String> clt_test(){
+	private Result<byte[]> clt_test(){
 		Response r = target.path("/").
 				request().accept(MediaType.APPLICATION_JSON)
 				.get();
-		return super.toJavaResult(r, String.class);
+		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<Void> clt_transfer(SignedTransaction signedTransaction){
+	private Result<byte[]> clt_transfer(SignedTransaction signedTransaction){
 		Response r = target.path("transfer")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(signedTransaction, MediaType.APPLICATION_JSON));
-		return super.toJavaResult(r, Void.class);
+		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<Void> clt_atomicTransfer(List<SignedTransaction> transactions){
+	private Result<byte[]> clt_atomicTransfer(List<SignedTransaction> transactions){
 		Response r = target.path("transfer").path("atomic")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(transactions, MediaType.APPLICATION_JSON));
-		return super.toJavaResult(r, Void.class);
+		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<Double> clt_balance(String account){
+	private Result<byte[]> clt_balance(String account){
 		Response r = target.path("balance").queryParam(WalletService.ACCOUNT,account)
 				.request().accept(MediaType.APPLICATION_JSON)
 				.get();
-		return super.toJavaResult(r, Double.class);
+		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<List<Account>> clt_ledger(){
+	private Result<byte[]> clt_ledger(){
 		Response r = target.path("ledger")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.get();
-		return super.toJavaResult(r, new GenericType<>() {});
+		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<Void> clt_admin(Transaction transaction){
+	private Result<byte[]> clt_admin(Transaction transaction){
 		Response r = target.path("giveme")
 				.request().accept(MediaType.APPLICATION_JSON)
 				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
-		return super.toJavaResult(r, Void.class);
+		return super.toJavaResult(r, byte[].class);
 	}
 }

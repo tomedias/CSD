@@ -17,7 +17,7 @@ import static csd2324.trab1.api.java.Result.ErrorCode.FORBIDDEN;
 import static csd2324.trab1.api.java.Result.ErrorCode.NOT_FOUND;
 
 
-public class JavaWallet implements Wallet {
+public class JavaWallet{
 
     final protected Map<String,Account> accountMap = new HashMap<>();
     List<String> adminAccounts = List.of("MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==");
@@ -56,7 +56,7 @@ public class JavaWallet implements Wallet {
         toAccount.addBalance(amount);
         System.out.println("From " + fromAccount.getBalance() + " to " + toAccount.getBalance() + " amount " + amount);
     }
-    @Override
+    
     public Result<Void> transfer(SignedTransaction signed_transaction) {
         Result<Void> code = checkTransfer(signed_transaction);
         if(!code.isOK()) return code;
@@ -65,7 +65,7 @@ public class JavaWallet implements Wallet {
         return ok();
     }
 
-    @Override
+    
     public Result<Void> atomicTransfer(List<SignedTransaction> signed_transactions) {
         for(SignedTransaction transaction : signed_transactions){
             Result<Void> code = checkTransfer(transaction);
@@ -80,24 +80,24 @@ public class JavaWallet implements Wallet {
         return ok();
     }
 
-    @Override
+    
     public Result<Double> balance(String account) {
         Account fromAccount = accountMap.get(account);
         if(fromAccount==null) return ok(-1.0); // for debugging purposes
         return ok(fromAccount.getBalance());
     }
 
-    @Override
+    
     public Result<List<Account>> ledger() {
         return ok(accountMap.values().stream().toList());
     }
 
-    @Override
+    
     public Result<String> test() {
         return ok("test");
     }
 
-    @Override
+    
     public Result<Void> giveme(Transaction transaction) {
         String admin = transaction.getFrom();
         String accountID = transaction.getTo();

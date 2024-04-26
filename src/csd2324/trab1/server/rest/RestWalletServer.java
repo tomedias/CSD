@@ -8,7 +8,7 @@ public class RestWalletServer extends AbstractRestServer{
 
     public static int PORT;
     public static int DEVIATE;
-
+    public static int SERVER;
     private static final Logger Log = Logger.getLogger(RestWalletServer.class.getName());
 
     RestWalletServer(String arg){
@@ -28,6 +28,7 @@ public class RestWalletServer extends AbstractRestServer{
             System.err.println("Usage: RestWalletServer <server_nr> <port>");
             System.exit(1);
         }
+        SERVER = Integer.parseInt(args[0]);
         PORT = Integer.parseInt(args[1]);
         new RestWalletServer(args[0]).start(PORT);
     }

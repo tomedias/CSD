@@ -8,6 +8,7 @@ import com.google.gson.reflect.TypeToken;
 import csd2324.trab1.api.Account;
 import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
+import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.rest.WalletService;
 import csd2324.trab1.server.java.JavaWallet;
 import csd2324.trab1.utils.JSON;
@@ -33,40 +34,39 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public void transfer(SignedTransaction transaction) {
+    public byte[] transfer(SignedTransaction transaction) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
-        try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+        try (ServiceProxy counterProxy = new ServiceProxy(process)) {
             String command = "transfer";
             String transactionString = JSON.encode(transaction);
             ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transactionString.length());
             new DataOutputStream(out).writeUTF(command);
             new DataOutputStream(out).writeUTF(transactionString);
             byte[] request = getSignedRequest(out.toByteArray(), counterProxy);
-
-            counterProxy.invokeAsynchRequest(request,new WalletReplyListener(counterProxy),TOMMessageType.ORDERED_REQUEST);
+            return getSignedRequest(counterProxy.invokeOrdered(request),counterProxy);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void atomicTransfer(List<SignedTransaction> signed_transactions) {
+    public byte[] atomicTransfer(List<SignedTransaction> signed_transactions) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
-        try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+        try (ServiceProxy counterProxy = new ServiceProxy(process)) {
             String command = "atomic";
             String transactions = JSON.encode(signed_transactions);
             ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transactions.length());
             new DataOutputStream(out).writeUTF(command);
             new DataOutputStream(out).writeUTF(transactions);
             byte[] request = getSignedRequest(out.toByteArray(),counterProxy);
-            counterProxy.invokeAsynchRequest(request,new WalletReplyListener(counterProxy),TOMMessageType.ORDERED_REQUEST);
+            return getSignedRequest(counterProxy.invokeOrdered(request),counterProxy);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public double balance(String account) {
+    public byte[] balance(String account) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(ServiceProxy counterProxy = new ServiceProxy(process)){
             String command = "balance";
@@ -77,13 +77,17 @@ public class RestWalletResource implements WalletService {
             byte[] reply = counterProxy.invokeUnordered(request);
             if(reply == null) {
                 Log.info(", ERROR! Exiting.");
-                return 0;
+                return new byte[0];
             }
             List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
             JavaWallet state_wallet = this.wallet.copy();
             executeLedger(ledger,state_wallet);
             this.wallet = state_wallet;
-            return this.wallet.balance(account).isOK() ? this.wallet.balance(account).value() : 0;
+            Result<Double> result = this.wallet.balance(account);
+            if(!result.isOK())
+                return new byte[0];
+            return getSignedRequest(JSON.encode(result.value()).getBytes(),counterProxy);
+
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -91,7 +95,7 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public List<Account> ledger() {
+    public byte[] ledger() {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(ServiceProxy counterProxy = new ServiceProxy(process)) {
             String command = "ledger";
@@ -101,57 +105,55 @@ public class RestWalletResource implements WalletService {
             byte[] reply = counterProxy.invokeUnordered(request);
             if (reply == null) {
                 Log.info(", ERROR! Exiting.");
-                return Collections.emptyList();
+                return new byte[0];
             }
             List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
-            JavaWallet state_wallet = this.wallet.copy();
-            executeLedger(ledger,state_wallet);
-            this.wallet = state_wallet;
-            return this.wallet.ledger().isOK() ? this.wallet.ledger().value() : new LinkedList<>();
+            byte[] state = getLedgerState(wallet.getState(),ledger);
+            return getSignedRequest(state,counterProxy);
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public String test(){
-        Log.info("got here");
+    public byte[] test(){
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(ServiceProxy counterProxy = new ServiceProxy(process)) {
             String command = "test";
-            Log.info("got here2");
             ByteArrayOutputStream out = new ByteArrayOutputStream(command.length());
             new DataOutputStream(out).writeUTF(command);
             byte[] request = getSignedRequest(out.toByteArray(),counterProxy);
             byte[] reply = counterProxy.invokeUnordered(request);
             if (reply == null) {
                 Log.info(", ERROR! Exiting.");
-                return "";
+                return new byte[0];
             }
-            
             List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
             JavaWallet state_wallet = this.wallet.copy();
             executeLedger(ledger,state_wallet);
             this.wallet = state_wallet;
-            return this.wallet.test().isOK() ? this.wallet.test().value() : "";
+            Result<String> result = this.wallet.test();
+            if(!result.isOK())
+                return new byte[0];
+            return getSignedRequest(JSON.encode(result.value()).getBytes(),counterProxy);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void admin(Transaction transaction) {
+    public byte[] admin(Transaction transaction) {
         
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         System.out.println(process);
-        try (AsynchServiceProxy counterProxy = new AsynchServiceProxy(process)) {
+        try (ServiceProxy counterProxy = new ServiceProxy(process)) {
             String command = "giveme";
             String transactionString = JSON.encode(transaction);
             ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transactionString.length());
             new DataOutputStream(out).writeUTF(command);
             new DataOutputStream(out).writeUTF(transactionString);
             byte[] request = getSignedRequest(out.toByteArray(), counterProxy);
-            counterProxy.invokeAsynchRequest(request, new WalletReplyListener(counterProxy), TOMMessageType.ORDERED_REQUEST);
+            return getSignedRequest(counterProxy.invokeOrdered(request),counterProxy);
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -204,6 +206,27 @@ public class RestWalletResource implements WalletService {
             }
         }
         wallet_copy.setState(ledger.size());
+    }
+
+    public byte[] getLedgerState(int nounce,List<byte[]> ledger){
+        ArrayList<byte[]> stateLedger = new ArrayList<>(ledger.size());
+        for(int i = 0; i<ledger.size();i++){
+            byte[] operation =ledger.get(i);
+            try {
+                DataInputStream in = new DataInputStream(new ByteArrayInputStream(operation));
+                int nounce_read = in.readInt();
+                if(nounce_read != nounce){
+                    stateLedger.add(ledger.get(i));
+                    continue;
+                }else{
+                    stateLedger.add(ledger.get(i));
+                    return JSON.encode(stateLedger).getBytes();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return new byte[0];
     }
 
 

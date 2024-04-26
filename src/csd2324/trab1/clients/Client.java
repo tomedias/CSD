@@ -22,7 +22,7 @@ public class Client{
 
 
     
-    public Result<Void> transfer(Transaction transaction) {
+    public Result<byte[]> transfer(Transaction transaction) {
         KeyPair keyPair = accountsMap.get(transaction.getFrom());
         PrivateKey privateKey = keyPair.getPrivate();
         return restClient.transfer(new SignedTransaction(privateKey,transaction));
@@ -30,7 +30,7 @@ public class Client{
 
 
     
-    public Result<Void> atomicTransfer(List<Transaction> transactions) {
+    public Result<byte[]> atomicTransfer(List<Transaction> transactions) {
         List<SignedTransaction> list_signed = new ArrayList<>();
         for(Transaction transaction : transactions){
             KeyPair keyPair = accountsMap.get(transaction.getFrom());
@@ -46,12 +46,12 @@ public class Client{
     }
 
     
-    public Result<List<Account>> ledger() {
+    public Result<byte[]> ledger() {
         return restClient.ledger();
     }
 
     
-    public Result<String> test() {
+    public Result<byte[]> test() {
        return restClient.test();
     }
 
