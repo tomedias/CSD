@@ -11,10 +11,10 @@ import csd2324.trab1.utils.JSON;
 
 import java.io.*;
 import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
-import java.security.SignatureException;
+import java.security.*;
+import java.security.spec.EncodedKeySpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.logging.Logger;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
     private static Logger Log = Logger.getLogger(ReplicaServer.class.getName());
-
+    private  String privKey = "";
     private final ServiceReplica replica;
     private List<byte[]> ledger;
 
@@ -30,6 +30,11 @@ public class ReplicaServer extends DefaultSingleRecoverable {
     public ReplicaServer(int id) {
         this.replica = new ServiceReplica(id, this, this);
         this.ledger = new ArrayList<>();
+        try {
+            this.privKey = new BufferedReader(new FileReader("./config/privatekey"+id)).readLine();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 
@@ -61,17 +66,25 @@ public class ReplicaServer extends DefaultSingleRecoverable {
     private byte[] getSignedRequest(byte[] request){
         try {
             Signature eng;
-            eng = TOMUtil.getSigEngine();
-            eng.initSign(this.replica.getReplicaContext().getStaticConfiguration().getPrivateKey());
-            eng.update(request);
+            eng = Signature.getInstance("SHA256withECDSA", "BC");
+
+            KeyFactory keyFactory = KeyFactory.getInstance("EC");
+            EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(org.apache.commons.codec.binary.Base64.decodeBase64(privKey));
+            PrivateKey privateKey = keyFactory.generatePrivate(privateKeySpec);
+            eng.initSign(privateKey);
             byte[] signature = eng.sign();
             ByteBuffer buffer = ByteBuffer.allocate(request.length + signature.length + (Integer.BYTES * 2));
+            buffer.putInt(this.replica.getId());
             buffer.putInt(request.length);
             buffer.put(request);
             buffer.putInt(signature.length);
             buffer.put(signature);
             return buffer.array();
         } catch (SignatureException | InvalidKeyException | NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidKeySpecException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchProviderException e) {
             throw new RuntimeException(e);
         }
     }

@@ -1,14 +1,10 @@
 package csd2324.trab1.server.rest;
 
-import bftsmart.communication.client.ReplyListener;
 import bftsmart.tom.AsynchServiceProxy;
-import bftsmart.tom.RequestContext;
 import bftsmart.tom.ServiceProxy;
-import bftsmart.tom.core.messages.TOMMessage;
 import bftsmart.tom.core.messages.TOMMessageType;
 import bftsmart.tom.util.TOMUtil;
 import com.google.gson.reflect.TypeToken;
-import csd2324.trab1.api.Account;
 import csd2324.trab1.api.SignedMessage;
 import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
@@ -16,10 +12,9 @@ import csd2324.trab1.api.rest.WalletService;
 import csd2324.trab1.server.java.JavaWallet;
 import csd2324.trab1.utils.JSON;
 import jakarta.inject.Singleton;
-import org.checkerframework.checker.units.qual.A;
-
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
@@ -40,7 +35,7 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public void transfer(SignedTransaction transaction) {
+    public byte[] transfer(SignedTransaction transaction) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try (AsynchServiceProxy serviceProxy = new AsynchServiceProxy(process)) {
             String command = "transfer";
@@ -53,13 +48,14 @@ public class RestWalletResource implements WalletService {
             SignedMessage message = new SignedMessage(request);
             serviceProxy.invokeAsynchRequest(request, new WalletReplyListener(serviceProxy,latch,message) ,TOMMessageType.UNORDERED_REQUEST);
             latch.await();
+            return JSON.encode(message).getBytes(StandardCharsets.UTF_8);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void atomicTransfer(List<SignedTransaction> signed_transactions) {
+    public byte[] atomicTransfer(List<SignedTransaction> signed_transactions) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try (AsynchServiceProxy serviceProxy = new AsynchServiceProxy(process)) {
             String command = "atomic";
@@ -72,13 +68,14 @@ public class RestWalletResource implements WalletService {
             SignedMessage message = new SignedMessage(request);
             serviceProxy.invokeAsynchRequest(request, new WalletReplyListener(serviceProxy,latch,message) ,TOMMessageType.UNORDERED_REQUEST);
             latch.await();
+            return JSON.encode(message).getBytes(StandardCharsets.UTF_8);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public double balance(String account) {
+    public byte[] balance(String account) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(AsynchServiceProxy serviceProxy = new AsynchServiceProxy(process)){
             String command = "balance";
@@ -90,11 +87,7 @@ public class RestWalletResource implements WalletService {
             SignedMessage message = new SignedMessage(request);
             serviceProxy.invokeAsynchRequest(request, new WalletReplyListener(serviceProxy,latch,message) ,TOMMessageType.UNORDERED_REQUEST);
             latch.await();
-            synchronized (this.wallet){
-                executeLedger(JSON.decode(new String(message.getMessageContent()), new TypeToken<List<byte[]>>() {}));
-                return this.wallet.balance(account).isOK() ? this.wallet.balance(account).value() : 0;
-            }
-
+            return JSON.encode(message).getBytes(StandardCharsets.UTF_8);
         }catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
@@ -102,7 +95,7 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public List<Account> ledger() {
+    public byte[] ledger() {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(AsynchServiceProxy serviceProxy = new AsynchServiceProxy(process)) {
             String command = "ledger";
@@ -113,18 +106,14 @@ public class RestWalletResource implements WalletService {
             SignedMessage message = new SignedMessage(request);
             serviceProxy.invokeAsynchRequest(request, new WalletReplyListener(serviceProxy,latch,message) ,TOMMessageType.UNORDERED_REQUEST);
             latch.await();
-            synchronized (this.wallet){
-                executeLedger(JSON.decode(new String(message.getMessageContent()), new TypeToken<List<byte[]>>() {}));
-                return this.wallet.ledger().isOK() ? this.wallet.ledger().value() : new LinkedList<>();
-            }
-
+            return JSON.encode(message).getBytes(StandardCharsets.UTF_8);
         }catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public String test(){
+    public byte[] test(){
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try(AsynchServiceProxy serviceProxy = new AsynchServiceProxy(process)) {
             String command = "test";
@@ -135,10 +124,7 @@ public class RestWalletResource implements WalletService {
             SignedMessage message = new SignedMessage(request);
             serviceProxy.invokeAsynchRequest(request, new WalletReplyListener(serviceProxy,latch,message) ,TOMMessageType.UNORDERED_REQUEST);
             latch.await();
-            synchronized (this.wallet){
-                executeLedger(JSON.decode(new String(message.getMessageContent()), new TypeToken<List<byte[]>>() {}));
-                return this.wallet.test().isOK() ? this.wallet.test().value() : "";
-            }
+            return JSON.encode(message).getBytes(StandardCharsets.UTF_8);
 
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -146,7 +132,7 @@ public class RestWalletResource implements WalletService {
     }
 
     @Override
-    public void admin(Transaction transaction) {
+    public byte[] admin(Transaction transaction) {
         int process = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
         try (final AsynchServiceProxy serviceProxy = new AsynchServiceProxy(process)) {
             String command = "giveme";
@@ -159,6 +145,7 @@ public class RestWalletResource implements WalletService {
             SignedMessage message = new SignedMessage(request);
             serviceProxy.invokeAsynchRequest(request, new WalletReplyListener(serviceProxy, latch,message), TOMMessageType.ORDERED_REQUEST);
             latch.await();
+            return JSON.encode(message).getBytes(StandardCharsets.UTF_8);
         }catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }

@@ -2,44 +2,30 @@ package csd2324.trab1.api;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class SignedMessage implements Serializable{
-    private byte[] messageContent;
-    private List<byte[]> signatures;
-    private byte[] answer;
+    private List<byte[]> messageContent;
+    private byte[] question;
 
-    public SignedMessage(){
-        this.signatures = new ArrayList<>();
-    }
-    public SignedMessage(byte[] content){
-        this.messageContent = content;
-        this.signatures = new ArrayList<>();
+    public SignedMessage(byte[] question){
+        this.messageContent = new ArrayList<>(10);
+        this.question = question;
     }
 
     public void setMessageContent(byte[] messageContent) {
-        this.messageContent = messageContent;
+        this.messageContent.add(messageContent);
     }
 
-    public byte[] getAnswer() {
-        return answer;
+    public byte[] getMessageContent(int id) {
+        return this.messageContent.get(id);
+    }
+    public byte[] getQuestion() {
+        return question;
     }
 
-    public void setAnswer(byte[] answer) {
-        this.answer = answer;
-    }
-
-    public byte[] getMessageContent() {
-        return messageContent;
-    }
-
-    public List<byte[]> getSignatures() {
-        return signatures;
-    }
-
-    public void addSignature(byte[] signature){
-        this.signatures.add(signature);
-    }
 
     
 }
