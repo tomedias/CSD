@@ -12,7 +12,7 @@ def read_yaml(file_path):
 
 def write_yaml(data, file_path):
     with open(file_path, 'w', newline="\n") as file:
-        yaml.dump(data, file, Dumper=MyDumper,allow_unicode=True, default_flow_style=False, width=10000,sort_keys=False)
+        yaml.dump(data, file, Dumper=MyDumper,default_flow_style=False, width=10000,sort_keys=False)
 
 def nginx_conf(proxys):
     config_content = """
@@ -102,7 +102,7 @@ def main():
     docker_compose['services'].update(nginx)
     write_yaml(docker_compose, './docker-compose.yml')
     nginx_config = nginx_conf(proxys)
-    with open('./nginx.conf', 'w', newline="\n") as file:
+    with open('./nginx.conf', 'w') as file:
         file.write(nginx_config.strip())
 
 
