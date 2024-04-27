@@ -20,6 +20,7 @@ public class test {
     private static final ArrayList<PublicKey> publicKeys = new ArrayList<>(4);
     private static final String admin_id = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==";
     private static final Map<String, Account> map = new HashMap<>();
+    private static final Random random = new Random();
     public static void main(String[] args) {
 
         for (int i = 1; i <= 4; i++) {
@@ -117,7 +118,10 @@ public class test {
                     for(int i=0; i< 100; i++){
                         final int thread_id = i;
                         new Thread(() -> {
-                            Result<byte[]> result = client.admin(new Transaction(admin_id,map.get(to).getId(),1));
+                            int nr = random.nextInt(1,5);
+                            int port = 3455 + nr;
+                            Client client_thread = new Client(String.format("https://localhost:%d/rest",port));
+                            Result<byte[]> result = client_thread.admin(new Transaction(admin_id,map.get(to).getId(),1));
                             if (!result.isOK()){
                                 System.out.println("Error");
                             }
