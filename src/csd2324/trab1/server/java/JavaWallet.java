@@ -6,6 +6,7 @@ import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.java.Result;
 import csd2324.trab1.api.java.Wallet;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +20,7 @@ import static csd2324.trab1.api.java.Result.ErrorCode.NOT_FOUND;
 
 public class JavaWallet{
 
-    final protected Map<String,Account> accountMap = new HashMap<>();
+    final protected Map<String,Account> accountMap = new ConcurrentHashMap<>();
     List<String> adminAccounts = List.of("MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==");
     public int state = 0;
 
@@ -39,7 +40,7 @@ public class JavaWallet{
         this.state = state;
     }
 
-    private Result<Void> checkTransfer(SignedTransaction signed_transaction){
+    private synchronized Result<Void> checkTransfer(SignedTransaction signed_transaction){
         if(signed_transaction==null) return error(FORBIDDEN);
         if(!signed_transaction.checkSignature()) return error(FORBIDDEN);
         Transaction transaction = signed_transaction.getTransaction();
@@ -49,7 +50,7 @@ public class JavaWallet{
         if(fromAccount.getBalance() < transaction.getAmount()) return error(FORBIDDEN);
         return ok();
     }
-    private void transferWithoutChecking(String from, String to, double amount){
+    private synchronized void transferWithoutChecking(String from, String to, double amount){
         Account fromAccount = accountMap.get(from);
         Account toAccount = accountMap.get(to);
         fromAccount.removeBalance(amount);
@@ -57,7 +58,7 @@ public class JavaWallet{
         System.out.println("From " + fromAccount.getBalance() + " to " + toAccount.getBalance() + " amount " + amount);
     }
     
-    public Result<Void> transfer(SignedTransaction signed_transaction) {
+    public synchronized Result<Void> transfer(SignedTransaction signed_transaction) {
         Result<Void> code = checkTransfer(signed_transaction);
         if(!code.isOK()) return code;
         Transaction transaction = signed_transaction.getTransaction();
@@ -66,7 +67,7 @@ public class JavaWallet{
     }
 
     
-    public Result<Void> atomicTransfer(List<SignedTransaction> signed_transactions) {
+    public synchronized Result<Void> atomicTransfer(List<SignedTransaction> signed_transactions) {
         for(SignedTransaction transaction : signed_transactions){
             Result<Void> code = checkTransfer(transaction);
             if(!code.isOK()) return code;
@@ -81,19 +82,14 @@ public class JavaWallet{
     }
 
     
-    public Result<Double> balance(String account) {
+    public synchronized Result<Double> balance(String account) {
         Account fromAccount = accountMap.get(account);
         if(fromAccount==null) return ok(-1.0); // for debugging purposes
         return ok(fromAccount.getBalance());
     }
 
     
-    public Result<List<Account>> ledger() {
-        return ok(accountMap.values().stream().toList());
-    }
-
-    
-    public Result<String> test() {
+    public synchronized Result<String> test() {
         return ok("test");
     }
 
@@ -111,7 +107,7 @@ public class JavaWallet{
 
     }
 
-    public JavaWallet copy(){
+    public synchronized JavaWallet copy(){
         return new JavaWallet(new HashMap<>(this.accountMap),this.state);
     }
 }

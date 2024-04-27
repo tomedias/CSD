@@ -48,8 +48,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        String answer = JSON.encode(ledger);
-        return answer.getBytes();
+        return JSON.encode(ledger).getBytes();
     }
 
     @Override
@@ -60,8 +59,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        String answer = JSON.encode(ledger);
-        return answer.getBytes();
+        return JSON.encode(ledger).getBytes();
     }
 
     private byte[] CheckSignature(byte[] command) throws Exception {
