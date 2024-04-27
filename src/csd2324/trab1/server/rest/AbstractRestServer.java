@@ -4,6 +4,8 @@ import csd2324.trab1.server.java.AbstractServer;
 import csd2324.trab1.utils.IP;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.jdkhttp.JdkHttpServerFactory;
+
+import javax.net.ssl.SSLContext;
 import java.util.logging.Logger;
 import java.net.URI;
 
@@ -19,9 +21,8 @@ public abstract class AbstractRestServer extends AbstractServer {
             ResourceConfig config = new ResourceConfig();
 
             registerResources( config );
-            JdkHttpServerFactory.createHttpServer( URI.create(serverURI.replace(IP.hostAddress(), INETADDR_ANY)), config);
+            JdkHttpServerFactory.createHttpServer( URI.create(serverURI.replace(IP.hostAddress(), INETADDR_ANY)), config, SSLContext.getDefault());
             Log.info(String.format("Server ready @ %s\n",serverURI));
-            Log.info("Test\n");
             Log.info(String.format("Server ip %s\n", IP.hostName()));
         }catch (Exception e) {
             Log.severe(e.getMessage());

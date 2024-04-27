@@ -30,7 +30,7 @@ services:
   restServer_1:
     image: myapp:latest
     ports:
-      - 3456:3456
+      - "3456:3456"
     command: java -Dlogback.configurationFile="./config/logback.xml" -jar /app/RestWalletServer-jar-with-dependencies.jar 1 3456
     networks:
       - app-network

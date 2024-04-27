@@ -1,6 +1,8 @@
 package csd2324.trab1.server.rest;
 
 import org.glassfish.jersey.server.ResourceConfig;
+
+import java.io.File;
 import java.util.logging.Logger;
 
 public class RestWalletServer extends AbstractRestServer{
@@ -14,11 +16,14 @@ public class RestWalletServer extends AbstractRestServer{
     RestWalletServer(String arg){
         super(Log,PORT);
         DEVIATE = Integer.parseInt(arg)*250000000;
+        System.setProperty("javax.net.ssl.keyStore", "./tls/rest"+SERVER+"/keystore");
+        System.setProperty("javax.net.ssl.keyStorePassword", "changeit");
     }
 
     @Override
     protected void registerResources(ResourceConfig config) {
         config.register( RestWalletResource.class );
+
 
     }
 

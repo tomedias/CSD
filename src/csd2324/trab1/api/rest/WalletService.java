@@ -18,32 +18,32 @@ public interface WalletService{
     @POST
     @Path("/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     byte[] transfer(SignedTransaction signedTransaction);
 
     @POST
     @Path("/transfer/atomic")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     byte[] atomicTransfer(List<SignedTransaction> transactions);
 
     @GET
     @Path("/balance")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     byte[] balance(@QueryParam(ACCOUNT) String account);
 
     @GET
     @Path("/ledger")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     byte[] ledger();
 
     @GET
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     byte[] test();
 
     @POST
     @Path("/giveme")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     byte[] admin(Transaction transaction);
 
 }

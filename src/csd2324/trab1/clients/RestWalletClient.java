@@ -56,42 +56,42 @@ public class RestWalletClient extends RestClient implements Wallet {
 
 	private Result<byte[]> clt_test(){
 		Response r = target.path("/").
-				request().accept(MediaType.APPLICATION_JSON)
+				request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get();
 		return super.toJavaResult(r, byte[].class);
 	}
 
 	private Result<byte[]> clt_transfer(SignedTransaction signedTransaction){
 		Response r = target.path("transfer")
-				.request().accept(MediaType.APPLICATION_JSON)
+				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.post(Entity.entity(signedTransaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, byte[].class);
 	}
 
 	private Result<byte[]> clt_atomicTransfer(List<SignedTransaction> transactions){
 		Response r = target.path("transfer").path("atomic")
-				.request().accept(MediaType.APPLICATION_JSON)
+				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.post(Entity.entity(transactions, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, byte[].class);
 	}
 
 	private Result<byte[]> clt_balance(String account){
 		Response r = target.path("balance").queryParam(WalletService.ACCOUNT,account)
-				.request().accept(MediaType.APPLICATION_JSON)
+				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get();
 		return super.toJavaResult(r, byte[].class);
 	}
 
 	private Result<byte[]> clt_ledger(){
 		Response r = target.path("ledger")
-				.request().accept(MediaType.APPLICATION_JSON)
+				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get();
 		return super.toJavaResult(r, byte[].class);
 	}
 
 	private Result<byte[]> clt_admin(Transaction transaction){
 		Response r = target.path("giveme")
-				.request().accept(MediaType.APPLICATION_JSON)
+				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, byte[].class);
 	}

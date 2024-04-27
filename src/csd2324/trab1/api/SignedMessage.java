@@ -1,28 +1,19 @@
 package csd2324.trab1.api;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+public class SignedMessage<T>{
+    private byte[] ledger_used_hash;
+    private T result;
+    public SignedMessage(byte[] content,T result){
+        this.ledger_used_hash = content;
+        this.result = result;
 
-public class SignedMessage implements Serializable{
-    private byte[] messageContent;
-    private List<byte[]> signatures;
-    public SignedMessage(byte[] content){
-        this.messageContent = content;
-        this.signatures = new ArrayList<>();
-    }    
-
-    public byte[] getMessageContent() {
-        return messageContent;
     }
 
-    public List<byte[]> getSignatures() {
-        return signatures;
+    public byte[] getLedger_used_hash() {
+        return ledger_used_hash;
     }
 
-    public void addSignature(byte[] signature){
-        this.signatures.add(signature);
+    public T getResult() {
+        return result;
     }
-
-    
 }

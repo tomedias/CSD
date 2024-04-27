@@ -1,8 +1,18 @@
 package csd2324.trab1;
 
+import com.google.gson.reflect.TypeToken;
 import csd2324.trab1.api.Account;
+import csd2324.trab1.api.SignedMessage;
 import csd2324.trab1.api.Transaction;
+import csd2324.trab1.api.java.Result;
 import csd2324.trab1.clients.Client;
+import csd2324.trab1.utils.JSON;
+import csd2324.trab1.utils.Secure;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.*;
 
 
@@ -15,7 +25,7 @@ public class test {
 
         System.setProperty("javax.net.ssl.trustStore", "tls/truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","changeit");
-        Client client = new Client("https://localhost");
+        Client client = new Client("https://localhost:3456/rest");
 
         while (true){
             System.out.println("Next command:");
@@ -31,12 +41,36 @@ public class test {
                     String name = new Scanner(System.in).nextLine();
                     System.out.println("Enter the amount:");
                     double amount = new Scanner(System.in).nextDouble();
-                    System.out.println(client.admin(new Transaction(admin_id,map.get(name).getId(),amount)));
+                    try {
+                        PublicKey key = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",1))).readLine());
+                        Result<byte[]> result = client.admin(new Transaction(admin_id,map.get(name).getId(),amount));
+                        if (!result.isOK()){
+                            System.out.println("Error");
+                            break;
+                        }
+                        SignedMessage<Void> response = getResponse(result.value(),key);
+                        System.out.println(response.getResult());
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 case "balance" -> {
                     System.out.println("Enter the account name:");
                     String name = new Scanner(System.in).nextLine();
-                    System.out.println(client.balance(map.get(name).getId()));
+                    try {
+                        PublicKey key = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",1))).readLine());
+                        Result<byte[]> result = client.balance(map.get(name).getId());
+                        if (!result.isOK()){
+                            System.out.println("Error");
+                            break;
+                        }
+                        SignedMessage<Double> response = getResponse(result.value(),key);
+                        System.out.println(response.getResult());
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 case "ledger" -> {
                     System.out.println(client.ledger());
@@ -48,10 +82,36 @@ public class test {
                     String to = new Scanner(System.in).nextLine();
                     System.out.println("Enter the amount:");
                     double amount = new Scanner(System.in).nextDouble();
-                    System.out.println(client.transfer(new Transaction(map.get(from).getId(),map.get(to).getId(),amount)));
+                    try {
+                        PublicKey key = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",1))).readLine());
+                        Result<byte[]> result = client.transfer(new Transaction(map.get(from).getId(),map.get(to).getId(),amount));
+                        if (!result.isOK()){
+                            System.out.println("Error");
+                            break;
+                        }
+                        SignedMessage<Void> response = getResponse(result.value(),key);
+                        System.out.println(response.getResult());
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 case "test" -> {
-                    System.out.println(client.test());
+                    try {
+                        PublicKey key = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",1))).readLine());
+                        Result<byte[]> result = client.test();
+                        if (!result.isOK()){
+                            System.out.println("Error");
+                            break;
+                        }
+                        SignedMessage<String> response = getResponse(result.value(),key);
+                        System.out.println(response.getResult());
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+
                 }
                 case "atomic" -> {
                     System.out.println("Enter the account name of the sender:");
@@ -62,31 +122,74 @@ public class test {
                     for (int i =0 ; i< 50; i++){
                         transactions.add(new Transaction(map.get(from).getId(),map.get(to).getId(),1));
                     }
-                    System.out.println(client.atomicTransfer(transactions));
+                    try {
+                        PublicKey key = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",1))).readLine());
+                        Result<byte[]> result = client.atomicTransfer(transactions);
+                        if (!result.isOK()){
+                            System.out.println("Error");
+                            break;
+                        }
+                        SignedMessage<Void> response = getResponse(result.value(),key);
+                        System.out.println(response.getResult());
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 case "spam" -> {
-
                     System.out.println("Enter the account name of the receiver:");
                     String to = new Scanner(System.in).nextLine();
-                    for(int i=0; i< 200; i++){
+                    for(int i=0; i< 10; i++){
                         new Thread(() -> {
-                            System.out.println(client.admin(new Transaction(admin_id,map.get(to).getId(),1)));
+                            try {
+                                PublicKey key = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",1))).readLine());
+                                Result<byte[]> result = client.admin(new Transaction(admin_id,map.get(to).getId(),1));
+                                if (!result.isOK()){
+                                    System.out.println("Error");
+                                }
+                                SignedMessage<Void> response = getResponse(result.value(),key);
+                                System.out.println(response.getResult());
+
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }).start();
 
-                    }
-
-                }
-                case "spam ledger" -> {
-                    for(int i=0; i< 50; i++){
-                        System.out.println(client.ledger());
                     }
 
                 }
                 default -> System.out.println("Unexpected value: " + command);
             }
         }
+    }
 
+    private static <T> SignedMessage<T> getResponse(byte[] content, PublicKey key) {
+        try {
+            String json = new String(CheckSignature(content,key));
+            return JSON.decode(json,new TypeToken<SignedMessage<T>>() {});
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
+    private static byte[] CheckSignature(byte[] command,PublicKey key) throws Exception {
+        System.out.println("Checking signature...");
+        ByteBuffer buffer = ByteBuffer.wrap(command);
+        int nr = buffer.getInt();
+        int l = buffer.getInt();
+        byte[] request = new byte[l];
+        buffer.get(request);
+        l = buffer.getInt();
+        byte[] signature = new byte[l];
+        buffer.get(signature);
+        String sig = new String(signature);
+        if (!Secure.verifySignature(request, sig, key)) {
+            System.out.println("Client sent invalid signature!");
+            System.exit(0);
+        }
+        System.out.println("Success");
+
+        return request;
 
     }
 

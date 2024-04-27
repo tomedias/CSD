@@ -4,16 +4,14 @@ package csd2324.trab1.server.rest;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
-import bftsmart.tom.util.TOMUtil;
 import com.google.gson.reflect.TypeToken;
 import csd2324.trab1.utils.JSON;
+import csd2324.trab1.utils.Secure;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.nio.ByteBuffer;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
-import java.security.SignatureException;
+import java.security.PublicKey;
 import java.util.ArrayList;
 
 import java.util.List;
@@ -24,11 +22,21 @@ public class ReplicaServer extends DefaultSingleRecoverable {
 
     private final ServiceReplica replica;
     private List<byte[]> ledger;
-
+    private ArrayList<PublicKey> publicKeys;
 
     public ReplicaServer(int id) {
+        System.setProperty("javax.net.ssl.trustStore", "./tls/truststore");
+        System.setProperty("javax.net.ssl.trustStorePassword","changeit");
         this.replica = new ServiceReplica(id, this, this);
         this.ledger = new ArrayList<>();
+        this.publicKeys = new ArrayList<>(4);
+        for (int i = 1; i <= 4; i++) {
+            try {
+                publicKeys.add(Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",i))).readLine()));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
@@ -37,46 +45,42 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         try {
             byte[] request = CheckSignature(command);
             ledger.add(request);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            throw new RuntimeException(e);
-        }
-        return new byte[0];
-
-
-    }
-
-    @Override
-    public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
-        Log.info("Unordered execution is not supported");
-        try {
-            byte[] request = CheckSignature(command);
-            ledger.add(request);
-        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         String answer = JSON.encode(ledger);
         return answer.getBytes();
     }
 
-    private byte[] CheckSignature(byte[] command) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+    @Override
+    public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
+        try {
+            byte[] request = CheckSignature(command);
+            ledger.add(request);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        String answer = JSON.encode(ledger);
+        return answer.getBytes();
+    }
+
+    private byte[] CheckSignature(byte[] command) throws Exception {
         ByteBuffer buffer = ByteBuffer.wrap(command);
+        int nr = buffer.getInt();
         int l = buffer.getInt();
         byte[] request = new byte[l];
         buffer.get(request);
         l = buffer.getInt();
         byte[] signature = new byte[l];
         buffer.get(signature);
-        Signature eng;
-        eng = TOMUtil.getSigEngine();
-        eng.initVerify(replica.getReplicaContext().getStaticConfiguration().getPublicKey());
-        eng.update(request);
-        if (!eng.verify(signature)) {
+        String sig = new String(signature);
+        PublicKey key = publicKeys.get(nr-1);
+        if (!Secure.verifySignature(request, sig, key)) {
             System.out.println("Client sent invalid signature!");
             System.exit(0);
         }
-
-
         return request;
+
     }
 
     public static void main(String[] args){

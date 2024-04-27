@@ -41,7 +41,7 @@ public class Client{
     }
 
     
-    public Result<Double> balance(String account) {
+    public Result<byte[]> balance(String account) {
         return restClient.balance(account);
     }
 
@@ -57,7 +57,7 @@ public class Client{
 
 
     
-    public Result<Void> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
+    public Result<byte[]> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
 
         return restClient.giveme(transaction);
     }

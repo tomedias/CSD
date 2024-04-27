@@ -1,10 +1,17 @@
 package csd2324.trab1.utils;
 
+import javax.crypto.Cipher;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
 
 public class Secure {
 
@@ -26,15 +33,15 @@ public class Secure {
         return null;
     }
 
-    public static String publicKeyToString(KeyPair keyPair) { //TODO create a security class
+    public static String publicKeyToString(KeyPair keyPair) {
         return Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
     }
     
-    public static String privateKeyToString(KeyPair keyPair) {//TODO create a security class
+    public static String privateKeyToString(KeyPair keyPair) {
         return Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded());
     }
 
-    public static PublicKey stringToPublicKey(String key) {//TODO create a security class
+    public static PublicKey stringToPublicKey(String key) {
         try {
 
             byte[] byteKey = Base64.getDecoder().decode(key);
@@ -45,7 +52,7 @@ public class Secure {
         return null;
     }
 
-    public static PrivateKey stringToPrivateKey(String key) {//TODO create a security class
+    public static PrivateKey stringToPrivateKey(String key) {
         try {
             byte[] byteKey = Base64.getDecoder().decode(key);
             return KeyFactory.getInstance("ECDSA").generatePrivate(new PKCS8EncodedKeySpec(byteKey));
@@ -69,4 +76,12 @@ public class Secure {
         byte[] digitalSignature = Base64.getDecoder().decode(signatureStr);
         return signature.verify(digitalSignature);
     }
+
+
+    public static byte[] hash(byte[] data) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        md.update(data);
+        return md.digest();
+    }
+
 }

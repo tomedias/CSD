@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 
 public abstract class AbstractServer {
 
-        protected static String SERVER_BASE_URI = "http://%s:%s%s";
+        protected static String SERVER_BASE_URI = "https://%s:%s%s";
         protected static final String INETADDR_ANY = "0.0.0.0";
 
         final protected Logger Log;
