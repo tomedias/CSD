@@ -48,6 +48,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        List<byte[]> ledger = new ArrayList<>(this.ledger);
         return JSON.encode(ledger).getBytes();
     }
 
@@ -59,6 +60,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        List<byte[]> ledger = new ArrayList<>(this.ledger);
         return JSON.encode(ledger).getBytes();
     }
 

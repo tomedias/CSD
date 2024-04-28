@@ -22,32 +22,32 @@ public class Client{
 
 
     
-    public Result<byte[]> transfer(Transaction transaction) {
+    public Result<byte[]> transfer(Transaction transaction, int op_number) {
         KeyPair keyPair = accountsMap.get(transaction.getFrom());
         PrivateKey privateKey = keyPair.getPrivate();
-        return restClient.transfer(new SignedTransaction(privateKey,transaction));
+        return restClient.transfer(new SignedTransaction(privateKey,transaction),op_number);
     }
 
 
     
-    public Result<byte[]> atomicTransfer(List<Transaction> transactions) {
+    public Result<byte[]> atomicTransfer(List<Transaction> transactions, int op_number) {
         List<SignedTransaction> list_signed = new ArrayList<>();
         for(Transaction transaction : transactions){
             KeyPair keyPair = accountsMap.get(transaction.getFrom());
             PrivateKey privateKey = keyPair.getPrivate();
             list_signed.add(new SignedTransaction(privateKey,transaction));
         }
-       return restClient.atomicTransfer(list_signed);
+       return restClient.atomicTransfer(list_signed,op_number);
     }
 
     
-    public Result<byte[]> balance(String account) {
-        return restClient.balance(account);
+    public Result<byte[]> balance(String account, int op_number) {
+        return restClient.balance(account,op_number);
     }
 
     
-    public Result<byte[]> ledger() {
-        return restClient.ledger();
+    public Result<byte[]> ledger(int op_number) {
+        return restClient.ledger(op_number);
     }
 
     
@@ -57,9 +57,9 @@ public class Client{
 
 
     
-    public Result<byte[]> admin(Transaction transaction) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
+    public Result<byte[]> admin(Transaction transaction, int op_number) { //Everybody can send admin requests they are just not verified.       There is still a secret since no SIGNATURE IMPLEMENTED //TODO
 
-        return restClient.giveme(transaction);
+        return restClient.giveme(transaction,op_number);
     }
 
     public Account createAccount(){

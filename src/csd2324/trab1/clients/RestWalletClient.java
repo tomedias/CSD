@@ -14,7 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
-public class RestWalletClient extends RestClient implements Wallet {
+public class RestWalletClient extends RestClient {
 
 	final WebTarget target;
 
@@ -24,34 +24,34 @@ public class RestWalletClient extends RestClient implements Wallet {
 	}
 
 
-	@Override
-	public Result<byte[]> transfer(SignedTransaction signedTransaction) {
-		return super.reTry(() -> clt_transfer(signedTransaction));
+	
+	public Result<byte[]> transfer(SignedTransaction signedTransaction,int op_number) {
+		return super.reTry(() -> clt_transfer(signedTransaction,op_number));
 	}
 
-	@Override
-	public Result<byte[]> atomicTransfer(List<SignedTransaction> transactions) {
-		return super.reTry(() -> clt_atomicTransfer(transactions));
+	
+	public Result<byte[]> atomicTransfer(List<SignedTransaction> transactions,int op_number) {
+		return super.reTry(() -> clt_atomicTransfer(transactions,op_number));
 	}
 
-	@Override
-	public Result<byte[]> balance(String account) {
-		return super.reTry(() -> clt_balance(account));
+	
+	public Result<byte[]> balance(String account,int op_number) {
+		return super.reTry(() -> clt_balance(account,op_number));
 	}
 
-	@Override
-	public Result<byte[]> ledger() {
-		return super.reTry(this::clt_ledger);
+	
+	public Result<byte[]> ledger(int op_number) {
+		return super.reTry(() -> clt_ledger(op_number));
 	}
 
-	@Override
+	
 	public Result<byte[]> test() {
 		return super.reTry(this::clt_test);
 	}
 
-	@Override
-	public Result<byte[]> giveme(Transaction transaction) {
-		return super.reTry(() -> clt_admin(transaction));
+	
+	public Result<byte[]> giveme(Transaction transaction,int op_number) {
+		return super.reTry(() -> clt_admin(transaction,op_number));
 	}
 
 	private Result<byte[]> clt_test(){
@@ -61,36 +61,41 @@ public class RestWalletClient extends RestClient implements Wallet {
 		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<byte[]> clt_transfer(SignedTransaction signedTransaction){
+	private Result<byte[]> clt_transfer(SignedTransaction signedTransaction,int op_number){
 		Response r = target.path("transfer")
+				.queryParam(WalletService.OP_NUMBER,op_number)
 				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.post(Entity.entity(signedTransaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<byte[]> clt_atomicTransfer(List<SignedTransaction> transactions){
+	private Result<byte[]> clt_atomicTransfer(List<SignedTransaction> transactions,int op_number){
 		Response r = target.path("transfer").path("atomic")
+				.queryParam(WalletService.OP_NUMBER,op_number)
 				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.post(Entity.entity(transactions, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<byte[]> clt_balance(String account){
+	private Result<byte[]> clt_balance(String account,int op_number){
 		Response r = target.path("balance").queryParam(WalletService.ACCOUNT,account)
+				.queryParam(WalletService.OP_NUMBER,op_number)
 				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get();
 		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<byte[]> clt_ledger(){
+	private Result<byte[]> clt_ledger(int op_number){
 		Response r = target.path("ledger")
+				.queryParam(WalletService.OP_NUMBER,op_number)
 				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get();
 		return super.toJavaResult(r, byte[].class);
 	}
 
-	private Result<byte[]> clt_admin(Transaction transaction){
+	private Result<byte[]> clt_admin(Transaction transaction,int op_number){
 		Response r = target.path("giveme")
+				.queryParam(WalletService.OP_NUMBER,op_number)
 				.request().accept(MediaType.APPLICATION_OCTET_STREAM)
 				.post(Entity.entity(transaction, MediaType.APPLICATION_JSON));
 		return super.toJavaResult(r, byte[].class);

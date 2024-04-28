@@ -1,17 +1,10 @@
 package csd2324.trab1.utils;
 
-import javax.crypto.Cipher;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.*;
-import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
-import java.security.cert.Certificate;
-import java.security.cert.CertificateFactory;
 
 public class Secure {
 

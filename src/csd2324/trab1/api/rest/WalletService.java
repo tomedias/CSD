@@ -14,28 +14,29 @@ public interface WalletService{
 
     String Path = "/wallet";
     String ACCOUNT = "account";
+    String OP_NUMBER = "op_number";
 
     @POST
     @Path("/transfer")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    byte[] transfer(SignedTransaction signedTransaction);
+    byte[] transfer(SignedTransaction signedTransaction, @QueryParam(OP_NUMBER) int op_number);
 
     @POST
     @Path("/transfer/atomic")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    byte[] atomicTransfer(List<SignedTransaction> transactions);
+    byte[] atomicTransfer(List<SignedTransaction> transactions, @QueryParam(OP_NUMBER) int op_number);
 
     @GET
     @Path("/balance")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    byte[] balance(@QueryParam(ACCOUNT) String account);
+    byte[] balance(@QueryParam(ACCOUNT) String account, @QueryParam(OP_NUMBER) int op_number);
 
     @GET
     @Path("/ledger")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    byte[] ledger();
+    byte[] ledger(@QueryParam(OP_NUMBER) int op_number);
 
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
@@ -44,6 +45,6 @@ public interface WalletService{
     @POST
     @Path("/giveme")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    byte[] admin(Transaction transaction);
+    byte[] admin(Transaction transaction,@QueryParam(OP_NUMBER) int op_number);
 
 }
