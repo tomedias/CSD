@@ -1,15 +1,11 @@
 package csd2324.trab1.clients;
 
-
-import csd2324.trab1.api.Account;
 import csd2324.trab1.api.SignedTransaction;
 import csd2324.trab1.api.Transaction;
 import csd2324.trab1.api.java.Result;
-import csd2324.trab1.api.java.Wallet;
 import csd2324.trab1.api.rest.WalletService;
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;

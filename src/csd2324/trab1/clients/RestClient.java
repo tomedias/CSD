@@ -10,14 +10,11 @@ import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
-
 import javax.net.ssl.HttpsURLConnection;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
-
 import static csd2324.trab1.api.java.Result.error;
 import static csd2324.trab1.api.java.Result.ok;
 

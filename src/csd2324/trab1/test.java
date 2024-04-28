@@ -10,7 +10,7 @@ import csd2324.trab1.utils.JSON;
 import csd2324.trab1.utils.Secure;
 
 import java.io.*;
-import java.nio.ByteBuffer;
+import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -46,6 +46,10 @@ public class test {
                     System.out.println("Enter the account name:");
                     String name = new Scanner(System.in).nextLine();
                     map.put(name,clients.getFirst().createAccount());
+                    KeyPair key = clients.getFirst().getKeyPair(map.get(name).getId());
+                    for(int i =1 ; i< clients.size(); i++){
+                        clients.get(i).addAccount(map.get(name).getId(),key);
+                    }
                 }
                 case "admin" -> {
                     final int OperationNumber = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
@@ -99,7 +103,7 @@ public class test {
                         System.out.println("Error");
                         break;
                     }
-                    String response = new String(CheckSignature(result.value()));
+                    String response = new String(Secure.CheckSignature(result.value(),publicKeys));
                     System.out.println(response);
 
                 }
@@ -155,7 +159,7 @@ public class test {
                 System.out.println("Not the same");
                 return;
             }
-            byte[] ledger = CheckSignature(result_ledger.value());
+            byte[] ledger = Secure.CheckSignature(result_ledger.value(),publicKeys);
             System.out.println(Arrays.equals(ledger, ledgerUsedHash)?"Ledger is the same":"Ledger is different");
 
         }catch (Exception e){
@@ -166,28 +170,13 @@ public class test {
 
     private static <T> SignedMessage<T> getResponse(byte[] content) {
         try {
-            String json = new String(CheckSignature(content));
+            String json = new String(Secure.CheckSignature(content,publicKeys));
             return JSON.decode(json,new TypeToken<SignedMessage<T>>() {});
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static byte[] CheckSignature(byte[] command) throws Exception {
-        ByteBuffer buffer = ByteBuffer.wrap(command);
-        int nr = buffer.getInt();
-        int l = buffer.getInt();
-        byte[] request = new byte[l];
-        buffer.get(request);
-        l = buffer.getInt();
-        byte[] signature = new byte[l];
-        buffer.get(signature);
-        String sig = new String(signature);
-        if (!Secure.verifySignature(request, sig, publicKeys.get(nr-1))) {
-            System.out.println("Server sent invalid signature!");
-            System.exit(0);
-        }
-        return request;
-    }
+
 
 }

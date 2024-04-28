@@ -6,11 +6,8 @@ import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
 import csd2324.trab1.utils.Secure;
 import java.io.*;
-import java.nio.ByteBuffer;
 import java.security.PublicKey;
 import java.util.ArrayList;
-
-import java.util.List;
 import java.util.logging.Logger;
 
 public class ReplicaServer extends DefaultSingleRecoverable {
@@ -37,7 +34,7 @@ public class ReplicaServer extends DefaultSingleRecoverable {
     @Override
     public byte[] appExecuteOrdered(byte[] command, MessageContext msgCtx) {
         try {
-            byte[] request = CheckSignature(command);
+            byte[] request = Secure.CheckSignature(command,publicKeys);
             synchronized (ledger){
                 ledger.add(request);
             }
@@ -52,24 +49,6 @@ public class ReplicaServer extends DefaultSingleRecoverable {
         return getSnapshot();
     }
 
-    private byte[] CheckSignature(byte[] command) throws Exception {
-        ByteBuffer buffer = ByteBuffer.wrap(command);
-        int nr = buffer.getInt();
-        int l = buffer.getInt();
-        byte[] request = new byte[l];
-        buffer.get(request);
-        l = buffer.getInt();
-        byte[] signature = new byte[l];
-        buffer.get(signature);
-        String sig = new String(signature);
-        PublicKey key = publicKeys.get(nr-1);
-        if (!Secure.verifySignature(request, sig, key)) {
-            System.out.println("Client sent invalid signature!");
-            System.exit(0);
-        }
-        return request;
-
-    }
 
     public static void main(String[] args){
         if(args.length < 1) {

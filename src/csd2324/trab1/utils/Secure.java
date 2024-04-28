@@ -1,9 +1,11 @@
 package csd2324.trab1.utils;
 
+import java.nio.ByteBuffer;
 import java.security.*;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.ArrayList;
 import java.util.Base64;
 
 public class Secure {
@@ -11,7 +13,7 @@ public class Secure {
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
-    public static KeyPair generateKeyPair() {//TODO create a security class
+    public static KeyPair generateKeyPair() {
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("ECDSA", "BC");
             ECGenParameterSpec ecSpec = new ECGenParameterSpec("prime256v1");
@@ -20,7 +22,6 @@ public class Secure {
         } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
             e.printStackTrace();
         } catch (Exception e) {
-            
             e.printStackTrace();
         }
         return null;
@@ -75,6 +76,29 @@ public class Secure {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         md.update(data);
         return md.digest();
+    }
+
+    public static byte[] CheckSignature(byte[] command, ArrayList<PublicKey> publicKeys) {
+        try{
+            ByteBuffer buffer = ByteBuffer.wrap(command);
+            int nr = buffer.getInt();
+            int l = buffer.getInt();
+            byte[] request = new byte[l];
+            buffer.get(request);
+            l = buffer.getInt();
+            byte[] signature = new byte[l];
+            buffer.get(signature);
+            String sig = new String(signature);
+            PublicKey key = publicKeys.get(nr-1);
+            if (!Secure.verifySignature(request, sig, key)) {
+                System.out.println("Client sent invalid signature!");
+                System.exit(0);
+            }
+            return request;
+        }catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }
