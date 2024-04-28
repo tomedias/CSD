@@ -22,9 +22,7 @@ public class RestWalletServer extends AbstractRestServer{
 
     @Override
     protected void registerResources(ResourceConfig config) {
-        config.register( RestWalletResource.class );
-
-
+        config.register( new RestWalletResource());
     }
 
 

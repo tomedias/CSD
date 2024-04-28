@@ -4,12 +4,8 @@ package csd2324.trab1.server.rest;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
-import com.google.gson.reflect.TypeToken;
-import csd2324.trab1.utils.JSON;
 import csd2324.trab1.utils.Secure;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -20,15 +16,13 @@ import java.util.logging.Logger;
 public class ReplicaServer extends DefaultSingleRecoverable {
     private static Logger Log = Logger.getLogger(ReplicaServer.class.getName());
 
-    private final ServiceReplica replica;
-    private List<byte[]> ledger;
-    private ArrayList<PublicKey> publicKeys;
+    private ArrayList<byte[]> ledger =  new ArrayList<>();
+    private final ArrayList<PublicKey> publicKeys;
 
     public ReplicaServer(int id) {
         System.setProperty("javax.net.ssl.trustStore", "./tls/truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","changeit");
-        this.replica = new ServiceReplica(id, this, this);
-        this.ledger = new ArrayList<>();
+        new ServiceReplica(id, this, this);
         this.publicKeys = new ArrayList<>(4);
         for (int i = 1; i <= 4; i++) {
             try {
@@ -44,24 +38,18 @@ public class ReplicaServer extends DefaultSingleRecoverable {
     public byte[] appExecuteOrdered(byte[] command, MessageContext msgCtx) {
         try {
             byte[] request = CheckSignature(command);
-            ledger.add(request);
+            synchronized (ledger){
+                ledger.add(request);
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        List<byte[]> ledger = new ArrayList<>(this.ledger);
-        return JSON.encode(ledger).getBytes();
+        return getSnapshot();
     }
 
     @Override
     public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
-        try {
-            byte[] request = CheckSignature(command);
-            ledger.add(request);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        List<byte[]> ledger = new ArrayList<>(this.ledger);
-        return JSON.encode(ledger).getBytes();
+        return getSnapshot();
     }
 
     private byte[] CheckSignature(byte[] command) throws Exception {
@@ -96,11 +84,29 @@ public class ReplicaServer extends DefaultSingleRecoverable {
     @SuppressWarnings("unchecked")
     @Override
     public void installSnapshot(byte[] state) {
-       ledger = JSON.decode(new String(state), new TypeToken<List<byte[]>>() {});
+        ByteArrayInputStream bais = new ByteArrayInputStream(state);
+        try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+            ledger = (ArrayList<byte[]>)ois.readObject();
+            bais.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
     public byte[] getSnapshot() {
-        return JSON.encode(ledger).getBytes();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+            final ArrayList<byte[]> final_ledger = this.ledger;
+            synchronized (final_ledger){
+                oos.writeObject(final_ledger);
+                oos.flush();
+                oos.close();
+                return baos.toByteArray();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

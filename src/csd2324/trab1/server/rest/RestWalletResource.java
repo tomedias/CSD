@@ -23,8 +23,7 @@ import java.util.logging.Logger;
 public class RestWalletResource implements WalletService {
     private final static Logger Log = Logger.getLogger(RestWalletResource.class.getName());
     private final JavaWallet wallet;
-    private final Random random = new Random();
-    private PrivateKey privateKey;
+    private final PrivateKey privateKey;
     public RestWalletResource() {
         wallet = new JavaWallet();
         try {
@@ -39,28 +38,24 @@ public class RestWalletResource implements WalletService {
         try (ServiceProxy counterProxy = new ServiceProxy(op_number)) {
             String command = "transfer";
             String transactionString = JSON.encode(transaction);
-            ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transactionString.length()+ Integer.BYTES);
-            new DataOutputStream(out).writeInt(op_number);
-            new DataOutputStream(out).writeUTF(command);
-            new DataOutputStream(out).writeUTF(transactionString);
-            byte[] request = sign(out.toByteArray());
+            byte[] request = sign(writeCommand(command, transactionString, op_number));
             byte[] reply = counterProxy.invokeOrdered(request);
             if (reply == null) {
                 System.out.println(", ERROR! Exiting.");
                 return new byte[0];
             }
-            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
+            List<byte[]> ledger = installSnapshot(reply);
             synchronized (this.wallet){
                 executeLedger(ledger);
             }
             byte[] ledgerHash = Secure.hash(JSON.encode(ledger).getBytes());
             SignedMessage<Void> message = new SignedMessage<>(ledgerHash,null,op_number);
             return sign(JSON.encode(message).getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            System.out.println("Error in transfer");
         }
+        return new byte[0];
     }
 
     @Override
@@ -68,28 +63,24 @@ public class RestWalletResource implements WalletService {
         try (ServiceProxy counterProxy = new ServiceProxy(op_number)) {
             String command = "atomic";
             String transactions = JSON.encode(signed_transactions);
-            ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transactions.length() + Integer.BYTES);
-            new DataOutputStream(out).writeInt(op_number);
-            new DataOutputStream(out).writeUTF(command);
-            new DataOutputStream(out).writeUTF(transactions);
-            byte[] request = sign(out.toByteArray());
+            byte[] request = sign(writeCommand(command, transactions, op_number));
             byte[] reply = counterProxy.invokeOrdered(request);
             if (reply == null) {
                 System.out.println(", ERROR! Exiting.");
                 return new byte[0];
             }
-            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
+            List<byte[]> ledger = installSnapshot(reply);
             synchronized (this.wallet){
                executeLedger(ledger);
             }
             byte[] ledgerHash = Secure.hash(JSON.encode(ledger).getBytes());
             SignedMessage<Void> message = new SignedMessage<>(ledgerHash,null,op_number);
             return sign(JSON.encode(message).getBytes());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            System.out.println("Error in atomic transfer");
         }
+        return new byte[0];
     }
 
     @Override
@@ -97,18 +88,13 @@ public class RestWalletResource implements WalletService {
 
         try(ServiceProxy counterProxy = new ServiceProxy(op_number)){
             String command = "balance";
-
-            ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + account.length()+ Integer.BYTES);
-            new DataOutputStream(out).writeInt(op_number);
-            new DataOutputStream(out).writeUTF(command);
-            new DataOutputStream(out).writeUTF(account);
-            byte[] request = sign(out.toByteArray());
+            byte[] request = sign(writeCommand(command, account, op_number));
             byte[] reply = counterProxy.invokeUnordered(request);
             if(reply == null) {
                 Log.info(", ERROR! Exiting.");
                 return new byte[0];
             }
-            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
+            List<byte[]> ledger = installSnapshot(reply);
             Result<Double> result;
             synchronized (this.wallet){
                 executeLedger(ledger);
@@ -117,15 +103,17 @@ public class RestWalletResource implements WalletService {
             if(!result.isOK())
                 return new byte[0];
             byte[] ledgerHash = Secure.hash(JSON.encode(ledger).getBytes());
-            SignedMessage<Double> message = new SignedMessage<>(ledgerHash,result.value(),op_number);
+            byte[] operation = ledger.getLast();
+            DataInputStream in = new DataInputStream(new ByteArrayInputStream(operation));
+            SignedMessage<Double> message = new SignedMessage<>(ledgerHash,result.value(),in.readInt());
             return sign(JSON.encode(message).getBytes());
 
-        }catch (IOException e) {
-            throw new RuntimeException(e);
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
 
+            e.printStackTrace();
+            System.out.println("Error in balance");
+        }
+        return new byte[0];
     }
 
     @Override
@@ -141,13 +129,41 @@ public class RestWalletResource implements WalletService {
                 Log.info(", ERROR! Exiting.");
                 return new byte[0];
             }
-            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
-            String state = getLedgerState(op_number,ledger);
-            return sign(Secure.hash(state.getBytes()));
+            List<byte[]> ledger = installSnapshot(reply);
+            return sign(Secure.hash(getLedgerState(op_number,ledger)));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            System.out.println("Error in ledger");
         }
+        return new byte[0];
     }
+
+    @Override
+    public byte[] admin(Transaction transaction, int op_number) {
+
+        try (ServiceProxy counterProxy = new ServiceProxy(op_number)) {
+            String command = "giveme";
+            String transactionString = JSON.encode(transaction);
+            byte[] request = sign(writeCommand(command, transactionString, op_number));
+            byte[] reply = counterProxy.invokeOrdered(request);
+            if (reply == null) {
+                System.out.println(", ERROR! Exiting.");
+                return new byte[0];
+            }
+            List<byte[]> ledger = installSnapshot(reply);
+            synchronized (this.wallet){
+                executeLedger(ledger);
+            }
+            byte[] ledgerHash = Secure.hash(reply);
+            SignedMessage<Void> message = new SignedMessage<>(ledgerHash,null,op_number);
+            return sign(JSON.encode(message).getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error in admin");
+        }
+        return new byte[0];
+    }
+
 
     @Override
     public byte[] test(){
@@ -159,35 +175,7 @@ public class RestWalletResource implements WalletService {
         return sign(result.value().getBytes());
     }
 
-    @Override
-    public byte[] admin(Transaction transaction, int op_number) {
 
-        try (ServiceProxy counterProxy = new ServiceProxy(op_number)) {
-            String command = "giveme";
-            String transactionString = JSON.encode(transaction);
-            ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transactionString.length() + Integer.BYTES);
-            new DataOutputStream(out).writeInt(op_number);
-            new DataOutputStream(out).writeUTF(command);
-            new DataOutputStream(out).writeUTF(transactionString);
-            byte[] request = sign(out.toByteArray());
-            byte[] reply = counterProxy.invokeOrdered(request);
-            if (reply == null) {
-                System.out.println(", ERROR! Exiting.");
-                return new byte[0];
-            }
-            List<byte[]> ledger = JSON.decode(new String(reply), new TypeToken<List<byte[]>>() {});
-            synchronized (this.wallet){
-                executeLedger(ledger);
-            }
-            byte[] ledgerHash = Secure.hash(reply);
-            SignedMessage<Void> message = new SignedMessage<>(ledgerHash,null,op_number);
-            return sign(JSON.encode(message).getBytes());
-        }catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     private byte[] sign(byte[] request){
         try {
@@ -200,14 +188,15 @@ public class RestWalletResource implements WalletService {
             buffer.put(signature);
             return buffer.array();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println("error");
         }
+        return new byte[0];
     }
 
     private synchronized void executeLedger(List<byte[]> ledger){
         synchronized (this.wallet){
             if(this.wallet.getState() > ledger.size()) return;
-            for(int i = this.wallet.getState(); i< ledger.size();i++){
+              for(int i = this.wallet.getState(); i< ledger.size();i++){
                 byte[] operation =ledger.get(i);
                 try {
                     DataInputStream in = new DataInputStream(new ByteArrayInputStream(operation));
@@ -233,8 +222,6 @@ public class RestWalletResource implements WalletService {
                     }
                 } catch (IOException e) {
                     System.out.println("Error");
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
                 }
             }
             this.wallet.setState(ledger.size());
@@ -242,24 +229,54 @@ public class RestWalletResource implements WalletService {
 
     }
 
-    public String getLedgerState(int nounce,List<byte[]> ledger){
+    public byte[] getLedgerState(int nonce,List<byte[]> ledger){
         ArrayList<byte[]> stateLedger = new ArrayList<>(ledger.size());
-        for(int i = 0; i<ledger.size();i++){
-            byte[] operation =ledger.get(i);
+        for (byte[] operation : ledger) {
             try {
                 DataInputStream in = new DataInputStream(new ByteArrayInputStream(operation));
-                int nounce_read = in.readInt();
-                if(nounce_read != nounce){
-                    stateLedger.add(ledger.get(i));
-                }else{
-                    stateLedger.add(ledger.get(i));
-                    return JSON.encode(stateLedger);
+                int nonce_read = in.readInt();
+                if (nonce_read != nonce) {
+                    stateLedger.add(operation);
+                } else {
+                    stateLedger.add(operation);
+                    return getSnapshot(stateLedger);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return "";
+        return new byte[0];
+    }
+
+    @SuppressWarnings("unchecked")
+    public ArrayList<byte[]> installSnapshot(byte[] state) {
+        ByteArrayInputStream bais = new ByteArrayInputStream(state);
+        try (ObjectInputStream ois = new ObjectInputStream(bais)) {
+            return (ArrayList<byte[]>)ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error");
+        }
+        return new ArrayList<>();
+    }
+
+    public byte[] getSnapshot(ArrayList<byte[]> ledger) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(outputStream)) {
+            oos.writeObject(ledger);
+            oos.flush();
+            return outputStream.toByteArray();
+        } catch (IOException e) {
+            System.out.println("error");
+            return null;
+        }
+    }
+
+    private byte[] writeCommand(String command, String transaction, int op_number) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream(command.length() + transaction.length() + Integer.BYTES);
+        new DataOutputStream(out).writeInt(op_number);
+        new DataOutputStream(out).writeUTF(command);
+        new DataOutputStream(out).writeUTF(transaction);
+        return out.toByteArray();
     }
 
 
