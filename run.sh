@@ -1,4 +1,4 @@
-mvn install:install-file \
+mvn initialize \
    -Dfile="bin\BFT-SMaRt.jar"\
    -DgroupId=bftsmart \
    -DartifactId=bftsmart \

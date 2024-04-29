@@ -53,8 +53,6 @@ public class Client{
     public Result<byte[]> test() {
        return restClient.test();
     }
-
-
     
     public Result<byte[]> admin(Transaction transaction, int op_number) { //Everybody can send admin requests they are just not verified.
 
