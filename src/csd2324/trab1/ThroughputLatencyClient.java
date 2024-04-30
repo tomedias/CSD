@@ -23,6 +23,7 @@ import java.io.IOException;
 import bftsmart.tom.util.Storage;
 
 import java.io.FileWriter;
+import java.security.KeyPair;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -47,6 +48,7 @@ public class ThroughputLatencyClient {
     static LinkedBlockingQueue<String> latencies;
     static Thread writerThread;
     private static final Map<String, Account> map = new HashMap<>();
+    private static final List<Client> clients = new ArrayList<>();
     private static final Random random = new Random();
     private static final String admin_id = "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEaZatK+wN0dHvQOPrFIIOkOoojw8LWCQYhdMO2xw0POF+Ph+mD/TiZG543+2Mplm2hjsQBHBgfrkrVmNbLH8TOQ==";
 
@@ -94,7 +96,7 @@ public class ThroughputLatencyClient {
         System.setProperty("javax.net.ssl.trustStore", "tls/truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","changeit");
 
-        BenchClient[] clients = new BenchClient[numThreads];
+        BenchClient[] benchClients = new BenchClient[numThreads];
 
         for(int i=0; i<numThreads; i++) {
             try {
@@ -105,13 +107,13 @@ public class ThroughputLatencyClient {
             }
 
             System.out.println("Launching client " + (initId+i));
-            clients[i] = new BenchClient(initId+i,numberOfOps,interval, readRatio, verbose);
+            benchClients[i] = new BenchClient(initId+i,numberOfOps,interval, readRatio, verbose);
         }
 
-        ExecutorService exec = Executors.newFixedThreadPool(clients.length);
+        ExecutorService exec = Executors.newFixedThreadPool(benchClients.length);
         Collection<Future<?>> tasks = new LinkedList<>();
 
-        for (BenchClient c : clients) {
+        for (BenchClient c : benchClients) {
             tasks.add(exec.submit(c));
         }
 
@@ -135,9 +137,10 @@ public class ThroughputLatencyClient {
         int id;
         int numberOfOps;
         int interval;
-        int readRatio;
+        int writeRatio;
         boolean verbose;
         Client proxy;
+        PublicKey publicKey;
         int rampup = 1000;
 
         public BenchClient(int id, int numberOfOps, int interval, int readRatio, boolean verbose) {
@@ -146,12 +149,14 @@ public class ThroughputLatencyClient {
             this.id = id;
             this.numberOfOps = numberOfOps;
             this.interval = interval;
-            this.readRatio = readRatio;
+            this.writeRatio = readRatio;
             this.verbose = verbose;
             this.proxy = new Client(String.format("https://localhost:%d/rest",3455+id%4));
+            clients.add(proxy);
+
 
             try {
-                PublicKey publicKey = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",id))).readLine());
+                this.publicKey = Secure.stringToPublicKey(new BufferedReader(new FileReader(String.format("./tls/rest%d/publickey",id))).readLine());
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(0);
@@ -164,8 +169,16 @@ public class ThroughputLatencyClient {
             System.out.println("Warm up...");
 
             int req = 0;
+            String name = "Client "+id;
 
             //Inicializar recursos, remover overhead de JIT
+            map.put(name,proxy.createAccount());
+            KeyPair key = proxy.getKeyPair(map.get(name).getId());
+            for(int i =0 ; i< clients.size(); i++){
+                clients.get(i).addAccount(map.get(name).getId(),key);
+            }
+
+
 
             Storage st = new Storage(numberOfOps);
 
@@ -180,10 +193,10 @@ public class ThroughputLatencyClient {
                 final int OperationNumber = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
                 Result<byte[]> result;
 
-                if(i<numberOfOps*readRatio/100) {
-                    result = proxy.balance(map.get("receiver").getId(), OperationNumber);
+                if(i<numberOfOps*writeRatio /100) {
+                    result = proxy.admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
                 }else {
-                    result = proxy.transfer(new Transaction(map.get("sender").getId(), map.get("receiver").getId(), 10.0), OperationNumber);
+                    result = proxy.balance(map.get(name).getId(), OperationNumber);
                 }
 
                 long latency = System.nanoTime() - last_send_instant;
