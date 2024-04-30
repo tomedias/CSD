@@ -99,13 +99,6 @@ public class ThroughputLatencyClient {
         BenchClient[] benchClients = new BenchClient[numThreads];
 
         for(int i=0; i<numThreads; i++) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException ex) {
-
-                ex.printStackTrace();
-            }
-
             System.out.println("Launching client " + (initId+i));
             benchClients[i] = new BenchClient(initId+i,numberOfOps,interval, readRatio, verbose);
         }
@@ -128,6 +121,7 @@ public class ThroughputLatencyClient {
         }
 
         exec.shutdown();
+        writerThread.interrupt();
 
         System.out.println("All clients done.");
     }
@@ -141,17 +135,16 @@ public class ThroughputLatencyClient {
         boolean verbose;
         Client proxy;
         PublicKey publicKey;
-        int rampup = 1000;
 
-        public BenchClient(int id, int numberOfOps, int interval, int readRatio, boolean verbose) {
+        public BenchClient(int id, int numberOfOps, int interval, int writeRatio, boolean verbose) {
             super("Client "+id);
 
             this.id = id;
             this.numberOfOps = numberOfOps;
             this.interval = interval;
-            this.writeRatio = readRatio;
+            this.writeRatio = writeRatio;
             this.verbose = verbose;
-            this.proxy = new Client(String.format("https://localhost:%d/rest",3455+id%4));
+            this.proxy = new Client(String.format("https://localhost:%d/rest",3455+id));
             clients.add(proxy);
 
 
@@ -171,14 +164,12 @@ public class ThroughputLatencyClient {
             int req = 0;
             String name = "Client "+id;
 
-            //Inicializar recursos, remover overhead de JIT
+            //Initialize endpoints
             map.put(name,proxy.createAccount());
             KeyPair key = proxy.getKeyPair(map.get(name).getId());
             for(int i =0 ; i< clients.size(); i++){
                 clients.get(i).addAccount(map.get(name).getId(),key);
             }
-
-
 
             Storage st = new Storage(numberOfOps);
 
@@ -188,10 +179,12 @@ public class ThroughputLatencyClient {
             for (int i = 0; i < numberOfOps ; i++, req++) {
                 if (verbose) System.out.print("Sending req " + req + "...");
 
-                long last_send_instant = System.nanoTime();
-
-                final int OperationNumber = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
                 Result<byte[]> result;
+                final int OperationNumber = random.nextInt(Integer.MIN_VALUE,Integer.MAX_VALUE);
+                result = proxy.admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
+                result = proxy.balance(map.get(name).getId(), OperationNumber);
+
+                long last_send_instant = System.nanoTime();
 
                 if(i<numberOfOps*writeRatio /100) {
                     result = proxy.admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
@@ -210,33 +203,15 @@ public class ThroughputLatencyClient {
                 if (verbose) System.out.println(this.id + " // sent!");
                 st.store(latency);
 
-
-                try {
-
-                    //sleeps interval ms before sending next request
-                    if (interval > 0) {
-
-                        Thread.sleep(interval);
-                    }
-                    else if (this.rampup > 0) {
-                        Thread.sleep(this.rampup);
-                    }
-                    this.rampup -= 100;
-
-                } catch (InterruptedException ex) {
-                    ex.printStackTrace();
-                }
-
-
                 if (verbose && (req % 1000 == 0)) System.out.println(this.id + " // " + req + " operations sent!");
             }
 
             if(id == initId) {
                 System.out.println(this.id + " // Average time for " + numberOfOps + " executions (-10%) = " + st.getAverage(true) / 1000 + " us ");
-                System.out.println(this.id + " // Standard deviation for " + numberOfOps + " executions (-10%) = " + st.getDP(true) / 1000 + " us ");
-                System.out.println(this.id + " // Average time for " + numberOfOps + " executions (all samples) = " + st.getAverage(false) / 1000 + " us ");
-                System.out.println(this.id + " // Standard deviation for " + numberOfOps + " executions (all samples) = " + st.getDP(false) / 1000 + " us ");
-                System.out.println(this.id + " // Maximum time for " + numberOfOps + " executions (all samples) = " + st.getMax(false) / 1000 + " us ");
+                //System.out.println(this.id + " // Standard deviation for " + numberOfOps + " executions (-10%) = " + st.getDP(true) / 1000 + " us ");
+                //System.out.println(this.id + " // Average time for " + numberOfOps + " executions (all samples) = " + st.getAverage(false) / 1000 + " us ");
+                //System.out.println(this.id + " // Standard deviation for " + numberOfOps + " executions (all samples) = " + st.getDP(false) / 1000 + " us ");
+                //System.out.println(this.id + " // Maximum time for " + numberOfOps + " executions (all samples) = " + st.getMax(false) / 1000 + " us ");
             }
         }
     }
