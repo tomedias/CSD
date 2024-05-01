@@ -130,9 +130,11 @@ public class ThroughputLatencyClient {
                 long last_send_instant = System.nanoTime();
 
                 if(i<numberOfOps*writeRatio /100) {
+                    System.out.println("Write");
                     result = clients.get(randServer.nextInt(numThreads)).admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
                 }else {
                     result = clients.get(randServer.nextInt(numThreads)).balance(map.get(name).getId(), OperationNumber);
+                    System.out.println("Read");
                 }
 
                 long latency = System.nanoTime() - last_send_instant;
@@ -150,14 +152,10 @@ public class ThroughputLatencyClient {
             }
 
             long t2 = System.nanoTime() - t1;
-
-                System.out.println(this.id + " // Average time for " + numberOfOps + " executions (-10%) = " + st.getAverage(true) / 1000000 + " ms ");
-                System.out.println(this.id + " // Average throughput for " + numberOfOps + " executions (-10%) = " + (numberOfOps)/(st.getAverage(true) / 1000000000) + " /s ");
-                System.out.println(this.id + "// Latency = " + (st.getAverage(true) / 1000000)/numberOfOps);
-                //System.out.println(this.id + " // Standard deviation for " + numberOfOps + " executions (-10%) = " + st.getDP(true) / 1000 + " us ");
-                //System.out.println(this.id + " // Average time for " + numberOfOps + " executions (all samples) = " + st.getAverage(false) / 1000 + " us ");
-                //System.out.println(this.id + " // Standard deviation for " + numberOfOps + " executions (all samples) = " + st.getDP(false) / 1000 + " us ");
-                //System.out.println(this.id + " // Maximum time for " + numberOfOps + " executions (all samples) = " + st.getMax(false) / 1000 + " us ");
+            double throughput = (double)(numberOfOps)/(double)(t2/ 1000000000);
+            System.out.println(this.id + " // Average time for " + numberOfOps + " executions (-10%) = " + st.getAverage(true) / 1000000 + " ms ");
+            System.out.println(this.id + " // Average throughput for " + numberOfOps + " executions (-10%) = " + throughput + " /s ");
+            System.out.println(this.id + "// Latency = " + (st.getAverage(true) / 1000000)/numberOfOps);
             latch.countDown();
         }
     }
