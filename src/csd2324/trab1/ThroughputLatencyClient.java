@@ -48,6 +48,8 @@ public class ThroughputLatencyClient {
         System.setProperty("javax.net.ssl.trustStore", "tls/truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","changeit");
 
+
+
         BenchClient[] benchClients = new BenchClient[numThreads];
 
 
@@ -59,6 +61,7 @@ public class ThroughputLatencyClient {
         }
 
         latch.await();
+        System.out.println("REACHED AWAIT");
 
 
 
@@ -124,13 +127,14 @@ public class ThroughputLatencyClient {
             //reads
             for (int i = 0; i < numberOfOps ; i++, req++) {
                 if (verbose) System.out.print("Sending req " + req + "...");
+                Random randServer = new Random();
 
                 long last_send_instant = System.nanoTime();
 
                 if(i<numberOfOps*writeRatio /100) {
-                    result = proxy.admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
+                    result = clients.get(randServer.nextInt(4)).admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
                 }else {
-                    result = proxy.balance(map.get(name).getId(), OperationNumber);
+                    result = clients.get(randServer.nextInt(4)).balance(map.get(name).getId(), OperationNumber);
                 }
 
                 long latency = System.nanoTime() - last_send_instant;
