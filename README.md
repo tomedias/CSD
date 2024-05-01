@@ -1,4 +1,4 @@
-# Project Assignment 1 | Francisco Vasco 61028 & Tomé Dias 60719| Dependable Distributed Systems 2023-24
+# Project Assignment 1 | Francisco Vasco 61028 & Tomé Dias 60719 | Dependable Distributed Systems 2023-24
 
 ## Compilation Script
 
