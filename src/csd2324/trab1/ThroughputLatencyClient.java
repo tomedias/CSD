@@ -29,22 +29,20 @@ public class ThroughputLatencyClient {
 
     @SuppressWarnings("static-access")
     public static void main(String[] args) throws InterruptedException {
-        if (args.length < 6) {
-            System.out.println("Usage: ... ThroughputLatencyClient <initial client id> <number of clients> <number of operations> <request size> <interval (ms)> <read only?> <verbose?> <nosig | default | ecdsa>");
+        if (args.length < 5) {
+            System.out.println("Usage: ... ThroughputLatencyClient <initial client id> <number of clients> <number of operations> <percentage of writes> <verbose?> ");
             System.exit(-1);
         }
 
         initId = Integer.parseInt(args[0]);
         int numThreads = Integer.parseInt(args[1]);
         int numberOfOps = Integer.parseInt(args[2]);
-        int interval = Integer.parseInt(args[3]);
-        int readRatio = Integer.parseInt(args[4]);
-        boolean verbose = Boolean.parseBoolean(args[5]);
+        int writeRatio = Integer.parseInt(args[3]);
+        boolean verbose = Boolean.parseBoolean(args[4]);
 
         CountDownLatch latch = new CountDownLatch(numberOfOps);
 
         latencies = new LinkedList<>();
-        final ArrayList<PublicKey> publicKeys = new ArrayList<>(numThreads);
         System.setProperty("javax.net.ssl.trustStore", "tls/truststore");
         System.setProperty("javax.net.ssl.trustStorePassword","changeit");
 
@@ -55,7 +53,7 @@ public class ThroughputLatencyClient {
 
         for(int i=0; i<numThreads; i++) {
             System.out.println("Launching client " + (initId+i));
-            benchClients[i] = new BenchClient(initId+i,numberOfOps,interval, readRatio, verbose,latch);
+            benchClients[i] = new BenchClient(initId+i,numberOfOps/numThreads, writeRatio,verbose,latch,numThreads);
             benchClients[i].start();
             Thread.sleep(10);
         }
@@ -72,22 +70,22 @@ public class ThroughputLatencyClient {
 
         private final int id;
         private final int numberOfOps;
-        private final int interval;
         private final int writeRatio;
         private final boolean verbose;
         private final CountDownLatch latch;
+        int numThreads;
         Client proxy;
         PublicKey publicKey;
 
-        public BenchClient(int id, int numberOfOps, int interval, int writeRatio, boolean verbose,CountDownLatch latch) {
+        public BenchClient(int id, int numberOfOps, int writeRatio, boolean verbose,CountDownLatch latch,int numThreads) {
             super("Client "+id);
 
             this.id = id;
             this.numberOfOps = numberOfOps;
-            this.interval = interval;
             this.writeRatio = writeRatio;
             this.verbose = verbose;
             this.latch = latch;
+            this.numThreads = numThreads;
             this.proxy = new Client(String.format("https://localhost:%d/rest",3455+id));
             clients.add(proxy);
 
@@ -132,9 +130,9 @@ public class ThroughputLatencyClient {
                 long last_send_instant = System.nanoTime();
 
                 if(i<numberOfOps*writeRatio /100) {
-                    result = clients.get(randServer.nextInt(4)).admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
+                    result = clients.get(randServer.nextInt(numThreads)).admin(new Transaction(admin_id,map.get(name).getId(),100),OperationNumber);
                 }else {
-                    result = clients.get(randServer.nextInt(4)).balance(map.get(name).getId(), OperationNumber);
+                    result = clients.get(randServer.nextInt(numThreads)).balance(map.get(name).getId(), OperationNumber);
                 }
 
                 long latency = System.nanoTime() - last_send_instant;
